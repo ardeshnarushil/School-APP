@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Change this to your backend IP address when testing on a physical device
 // Example: const API_URL = 'http://192.168.1.5:8000';
-const API_URL = 'http://192.168.100.5:8000';
+const API_URL = 'https://school-app-1-c90p.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,

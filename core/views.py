@@ -418,3 +418,65 @@ class DashboardStatsView(views.APIView):
         data['announcement'] = latest_notice.content if latest_notice else None
         
         return Response(data)
+
+
+class SeedDatabaseView(views.APIView):
+    """One-time seed endpoint to create initial users. DELETE after use."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        SECRET = request.query_params.get('secret', '')
+        if SECRET != 'schoolsync-seed-2024':
+            return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+
+        results = []
+        from datetime import timedelta
+
+        # 1. Admin
+        admin, created = CustomUser.objects.get_or_create(
+            username='admin',
+            defaults={'role': 'ADMIN', 'is_staff': True, 'is_superuser': True,
+                      'first_name': 'Admin', 'last_name': 'User'}
+        )
+        admin.set_password('admin123')
+        admin.save()
+        results.append(f"{'Created' if created else 'Updated'}: admin / admin123 (ADMIN)")
+
+        # 2. Teacher
+        teacher, created = CustomUser.objects.get_or_create(
+            username='teacher_hani',
+            defaults={'role': 'TEACHER', 'first_name': 'Hani', 'last_name': 'Smith'}
+        )
+        teacher.set_password('teacher123')
+        teacher.save()
+        results.append(f"{'Created' if created else 'Updated'}: teacher_hani / teacher123 (TEACHER)")
+
+        # 3. Parent
+        parent, created = CustomUser.objects.get_or_create(
+            username='parent_doe',
+            defaults={'role': 'PARENT', 'first_name': 'John', 'last_name': 'Doe'}
+        )
+        parent.set_password('parent123')
+        parent.save()
+        results.append(f"{'Created' if created else 'Updated'}: parent_doe / parent123 (PARENT)")
+
+        # 4. Class
+        school_class, created = SchoolClass.objects.get_or_create(
+            name='Class 1A',
+            defaults={'teacher': teacher}
+        )
+        results.append(f"{'Created' if created else 'Exists'}: Class 1A")
+
+        # 5. Student
+        from .models import Student
+        student, created = Student.objects.get_or_create(
+            roll_number='S101',
+            defaults={'name': 'Jane Doe', 'school_class': school_class, 'parent': parent}
+        )
+        results.append(f"{'Created' if created else 'Exists'}: Student Jane Doe")
+
+        return Response({
+            'status': 'SUCCESS',
+            'message': 'Database seeded! Delete this endpoint after use.',
+            'results': results
+        }, status=status.HTTP_200_OK)
