@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+.env
+.capacitor/
+node_modules/
+dist/
+android/
+ios/
+capacitor.config.json
+package-lock.json
+requirements.txt.bak
