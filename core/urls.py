@@ -4,8 +4,7 @@ from .views import (
     SchoolClassViewSet, TeacherViewSet, StudentViewSet, 
     HomeworkViewSet, AttendanceViewSet, DashboardStatsView,
     ChangePasswordView, ParentViewSet, NoticeViewSet,
-    ExamViewSet, ResultViewSet, ProfileView, NotificationViewSet,
-    SeedDatabaseView
+    ExamViewSet, ResultViewSet, ProfileView, NotificationViewSet
 )
 
 router = DefaultRouter()
@@ -25,5 +24,4 @@ urlpatterns = [
     path('dashboard-stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('me/', ProfileView.as_view(), name='me'),
-    path('seed-db/', SeedDatabaseView.as_view(), name='seed-db'),  # TEMP - delete after use
 ]
