@@ -542,76 +542,101 @@ const TeacherDashboard = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="flex min-h-screen bg-surface">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-slate-200 p-6 flex flex-col sticky top-0 h-screen">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-            <BookOpen size={24} />
+    <div className="min-h-screen bg-surface">
+      {/* Top Navbar - Mobile Optimized */}
+      <nav className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary text-white rounded flex items-center justify-center">
+            <BookOpen size={18} />
           </div>
-          <span className="text-xl font-bold text-primary">SchoolSync</span>
+          <span className="text-lg font-bold text-primary">SchoolSync</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={toggleLanguage}
+            className="bg-slate-50 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 border border-slate-100"
+          >
+            {i18n.language === 'en' ? 'GUJ' : 'ENG'}
+          </button>
+          <div 
+            onClick={() => window.location.href = '/profile'}
+            className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-primary border border-slate-200"
+          >
+            <User size={18} />
+          </div>
+        </div>
+      </nav>
+
+      <div className="flex min-h-screen">
+        {/* Sidebar - Desktop Only */}
+        <div className="hidden lg:flex w-64 bg-white border-r border-slate-200 p-6 flex-col sticky top-0 h-screen">
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+              <BookOpen size={24} />
+            </div>
+            <span className="text-xl font-bold text-primary">SchoolSync</span>
+          </div>
+
+          <button 
+            onClick={toggleLanguage}
+            className="mb-6 flex items-center gap-2 bg-slate-50 hover:bg-slate-100 px-4 py-3 rounded-2xl transition-all text-xs font-bold text-slate-700 border border-slate-100"
+          >
+            <Languages size={18} className="text-primary" />
+            {i18n.language === 'en' ? 'ગુજરાતી' : 'English'}
+          </button>
+
+          <nav className="flex-1 space-y-2">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={activeTab === 'overview' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <LayoutDashboard size={20} /> {t('overview')}
+            </button>
+            <button
+              onClick={() => setActiveTab('students')}
+              className={activeTab === 'students' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <Users size={20} /> {t('my_students')}
+            </button>
+            <button
+              onClick={() => setActiveTab('homework')}
+              className={activeTab === 'homework' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <Plus size={20} /> {t('post_homework')}
+            </button>
+            <button
+              onClick={() => setActiveTab('attendance')}
+              className={activeTab === 'attendance' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <CheckSquare size={20} /> {t('attendance')}
+            </button>
+            <button
+              onClick={() => setActiveTab('results')}
+              className={activeTab === 'results' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <ClipboardCheck size={20} /> {t('exam_results')}
+            </button>
+            <button
+              onClick={() => setActiveTab('parents')}
+              className={activeTab === 'parents' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <UserPlus size={20} /> {t('manage_parents')}
+            </button>
+            <button
+              onClick={() => setActiveTab('exam-timetable')}
+              className={activeTab === 'exam-timetable' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <CalendarIcon size={20} /> {t('exam_timetable')}
+            </button>
+          </nav>
+
+          <button onClick={logout} className="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600 mt-auto">
+            <LogOut size={20} /> {t('logout')}
+          </button>
         </div>
 
-        <button 
-          onClick={toggleLanguage}
-          className="mb-6 flex items-center gap-2 bg-slate-50 hover:bg-slate-100 px-4 py-3 rounded-2xl transition-all text-xs font-bold text-slate-700 border border-slate-100"
-        >
-          <Languages size={18} className="text-primary" />
-          {i18n.language === 'en' ? 'ગુજરાતી' : 'English'}
-        </button>
-
-        <nav className="flex-1 space-y-2">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={activeTab === 'overview' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <LayoutDashboard size={20} /> {t('overview')}
-          </button>
-          <button
-            onClick={() => setActiveTab('students')}
-            className={activeTab === 'students' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <Users size={20} /> {t('my_students')}
-          </button>
-          <button
-            onClick={() => setActiveTab('homework')}
-            className={activeTab === 'homework' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <Plus size={20} /> {t('post_homework')}
-          </button>
-          <button
-            onClick={() => setActiveTab('attendance')}
-            className={activeTab === 'attendance' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <CheckSquare size={20} /> {t('attendance')}
-          </button>
-          <button
-            onClick={() => setActiveTab('results')}
-            className={activeTab === 'results' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <ClipboardCheck size={20} /> {t('exam_results')}
-          </button>
-          <button
-            onClick={() => setActiveTab('parents')}
-            className={activeTab === 'parents' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <UserPlus size={20} /> {t('manage_parents')}
-          </button>
-          <button
-            onClick={() => setActiveTab('exam-timetable')}
-            className={activeTab === 'exam-timetable' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <CalendarIcon size={20} /> {t('exam_timetable')}
-          </button>
-        </nav>
-
-        <button onClick={logout} className="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600 mt-auto">
-          <LogOut size={20} /> {t('logout')}
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-8 overflow-y-auto">
+        {/* Main Content */}
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto pb-24 lg:pb-8">
         {/* Announcement Banner */}
         {stats.announcement && (
           <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-8 rounded-r-xl flex items-center gap-4 animate-in fade-in slide-in-from-top duration-500">
@@ -1729,6 +1754,51 @@ const TeacherDashboard = () => {
         message={deleteModal.message}
         isDeleting={isDeleting}
       />
+
+      {/* Bottom Navigation - Mobile Only */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-nav z-50 pb-safe">
+        <div className="flex justify-around items-center px-2 py-1">
+          <button 
+            onClick={() => setActiveTab('overview')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'overview' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <LayoutDashboard size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('overview')}</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('students')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'students' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <Users size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('students')}</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('attendance')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'attendance' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <CheckSquare size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('attendance')}</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('homework')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'homework' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <Plus size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('homework')}</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('results')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'results' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <ClipboardCheck size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('results')}</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -185,44 +185,42 @@ const ParentDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navbar */}
-      <nav className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-20">
-        <div className="flex items-center gap-3">
+      <nav className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4 flex justify-between items-center sticky top-0 z-20">
+        <div className="flex items-center gap-2 md:gap-3">
           <div className="w-8 h-8 bg-primary text-white rounded flex items-center justify-center">
             <BookOpen size={18} />
           </div>
-          <span className="text-xl font-bold text-primary">SchoolSync</span>
+          <span className="text-lg md:text-xl font-bold text-primary">SchoolSync</span>
         </div>
         
-        <div className="flex items-center gap-6">
-          <div 
-            onClick={() => window.location.href = '/profile'}
-            className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-xl transition-all"
-          >
-            <div className="text-right">
-              <p className="text-sm font-bold text-slate-800">{localStorage.getItem('username') || t('parent_account')}</p>
-              <p className="text-xs text-slate-500">{t('parent_account')}</p>
-            </div>
-            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-primary font-bold">
-              <User size={20} />
-            </div>
-          </div>
+        <div className="flex items-center gap-3 md:gap-6">
           <button 
             onClick={toggleLanguage}
-            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition-all text-sm font-bold text-slate-700"
+            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 md:px-4 md:py-2 rounded-xl transition-all text-xs md:text-sm font-bold text-slate-700"
           >
-            <Languages size={18} className="text-primary" />
-            {i18n.language === 'en' ? 'ગુજરાતી' : 'English'}
+            <Languages size={16} className="text-primary" />
+            <span className="hidden xs:inline">{i18n.language === 'en' ? 'ગુજરાતી' : 'English'}</span>
+            <span className="xs:hidden">{i18n.language === 'en' ? 'GUJ' : 'ENG'}</span>
           </button>
-          <button onClick={logout} className="text-slate-400 hover:text-red-500 transition-colors">
-            <LogOut size={20} />
+          
+          <div 
+            onClick={() => window.location.href = '/profile'}
+            className="flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-slate-50 p-1 md:p-2 rounded-xl transition-all"
+          >
+            <div className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 rounded-full flex items-center justify-center text-primary font-bold border border-slate-200">
+              <User size={18} />
+            </div>
+          </div>
+          <button onClick={logout} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+            <LogOut size={18} />
           </button>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto p-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Tabs */}
-          <div className="w-full lg:w-64 space-y-2">
+      <div className="max-w-6xl mx-auto p-4 md:p-8 pb-24 md:pb-8">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+          {/* Sidebar Tabs - Desktop Only */}
+          <div className="hidden lg:block w-64 space-y-2">
             <button 
               onClick={() => setActiveTab('overview')}
               className={activeTab === 'overview' ? 'sidebar-link-active w-full' : 'sidebar-link w-full bg-white'}
@@ -262,19 +260,19 @@ const ParentDashboard = () => {
           </div>
 
           {/* Main Feed Area */}
-          <div className="flex-1 space-y-8">
+          <div className="flex-1 space-y-6 md:space-y-8">
             {/* Announcement Banner */}
             {data?.announcement && (
-              <div className="bg-primary text-white p-6 rounded-2xl flex items-center gap-6 shadow-xl shadow-primary/20 relative overflow-hidden group">
+              <div className="bg-primary text-white p-4 md:p-6 rounded-2xl flex items-center gap-4 md:gap-6 shadow-xl shadow-primary/20 relative overflow-hidden group">
                 <div className="absolute right-0 top-0 opacity-10 group-hover:scale-110 transition-transform">
-                   <Megaphone size={120} />
+                   <Megaphone size={100} className="md:size-[120px]" />
                 </div>
-                <div className="bg-white/20 p-4 rounded-xl backdrop-blur-md">
-                   <Megaphone size={28} />
+                <div className="bg-white/20 p-3 md:p-4 rounded-xl backdrop-blur-md shrink-0">
+                   <Megaphone size={24} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">{t('administrator_announcement')}</p>
-                  <p className="text-lg font-medium leading-tight">{data.announcement}</p>
+                  <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest opacity-70 mb-1">{t('administrator_announcement')}</p>
+                  <p className="text-sm md:text-lg font-medium leading-tight">{data.announcement}</p>
                 </div>
               </div>
             )}
@@ -282,10 +280,10 @@ const ParentDashboard = () => {
             {child && (
               <div 
                 onClick={() => setViewingStudent({...child, class_name: child.class_name})}
-                className="bg-white border border-slate-200 p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center shadow-sm cursor-pointer hover:shadow-md transition-all group"
+                className="bg-white border border-slate-200 p-4 md:p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center shadow-sm cursor-pointer hover:shadow-md transition-all group"
               >
-                <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-primary font-bold text-2xl overflow-hidden border-4 border-slate-50 shadow-inner group-hover:ring-4 group-hover:ring-primary/10 transition-all">
+                <div className="flex items-center gap-4 md:gap-6">
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-100 rounded-full flex items-center justify-center text-primary font-bold text-xl md:text-2xl overflow-hidden border-2 md:border-4 border-slate-50 shadow-inner group-hover:ring-4 group-hover:ring-primary/10 transition-all">
                     {child.profile_picture ? (
                       <img 
                         src={getImageUrl(child.profile_picture)} 
@@ -294,17 +292,17 @@ const ParentDashboard = () => {
                         loading="lazy"
                       />
                     ) : (
-                      <User size={32} className="opacity-30" />
+                      <User size={24} className="opacity-30" />
                     )}
                   </div>
                   <div>
-                    <h2 className="text-3xl font-bold text-slate-800">{child.name}</h2>
-                    <p className="text-slate-500 font-medium uppercase tracking-wider text-sm">{t('class')} {toGujarati(child.class_name)} • {t('roll_number')}: {toGujarati(child.roll_number)}</p>
+                    <h2 className="text-xl md:text-3xl font-bold text-slate-800">{child.name}</h2>
+                    <p className="text-slate-500 font-medium uppercase tracking-wider text-[10px] md:text-sm">{t('class')} {toGujarati(child.class_name)} • {t('roll_number')}: {toGujarati(child.roll_number)}</p>
                   </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl mt-4 md:mt-0 border border-slate-100 flex flex-col items-center">
-                  <p className="text-xs font-bold uppercase text-slate-400 tracking-widest mb-1">{t('status')}</p>
-                  <div className="flex items-center gap-2 text-green-500 font-bold">
+                <div className="hidden md:flex bg-slate-50 p-4 rounded-2xl mt-4 md:mt-0 border border-slate-100 flex-col items-center">
+                  <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-1">{t('status')}</p>
+                  <div className="flex items-center gap-2 text-green-500 font-bold text-xs md:text-base">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     {t('enrolled')}
                   </div>
@@ -313,25 +311,24 @@ const ParentDashboard = () => {
             )}
 
             {activeTab === 'overview' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                      <CalendarIcon className="text-primary" /> {t('school_events_timeline')}
+              <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                  <div className="space-y-4 md:space-y-6">
+                    <h3 className="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-3">
+                      <CalendarIcon className="text-primary" size={24} /> {t('school_events_timeline')}
                     </h3>
-                    <p className="text-slate-500 -mt-4">{t('school_events_desc')}</p>
                     <EventsTimeline events={getUpcomingEvents()} />
                   </div>
                   
-                  <div className="space-y-6">
-                    <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                      <Award className="text-primary" /> {t('upcoming_exams')}
+                  <div className="space-y-4 md:space-y-6">
+                    <h3 className="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-3">
+                      <Award className="text-primary" size={24} /> {t('upcoming_exams')}
                     </h3>
                     <div className="grid gap-4">
                       {data?.exams?.filter(ex => ex.is_visible).slice(0, 3).map(exam => (
-                        <div key={exam.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                           <h4 className="font-bold text-slate-800">{exam.name}</h4>
-                           <p className="text-xs text-slate-400 mt-1 uppercase font-black tracking-widest">{toGujarati(exam.subjects?.length)} {t('subjects')}</p>
+                        <div key={exam.id} className="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm">
+                           <h4 className="font-bold text-slate-800 text-sm md:text-base">{exam.name}</h4>
+                           <p className="text-[10px] text-slate-400 mt-1 uppercase font-black tracking-widest">{toGujarati(exam.subjects?.length)} {t('subjects')}</p>
                         </div>
                       ))}
                     </div>
@@ -780,6 +777,53 @@ const ParentDashboard = () => {
           </div>
         </div>
       )}
+      {/* Bottom Navigation - Mobile Only */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-nav z-50 pb-safe">
+        <div className="flex justify-around items-center px-2 py-1">
+          <button 
+            onClick={() => setActiveTab('overview')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'overview' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <LayoutDashboard size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('overview')}</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('notifications')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'notifications' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <div className="relative">
+              <Bell size={20} />
+              {notifications.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>}
+            </div>
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('notif')}</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('attendance')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'attendance' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <CalendarIcon size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('attendance')}</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('homework')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'homework' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <BookOpen size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('homework')}</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('results')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'results' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <ClipboardCheck size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('results')}</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

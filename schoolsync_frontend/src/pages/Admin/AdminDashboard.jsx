@@ -182,59 +182,82 @@ const AdminDashboard = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="flex min-h-screen bg-surface">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-slate-200 p-6 flex flex-col sticky top-0 h-screen">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-            <Shield size={24} />
+    <div className="min-h-screen bg-surface">
+      {/* Top Navbar - Mobile Optimized */}
+      <nav className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary text-white rounded flex items-center justify-center">
+            <Shield size={18} />
           </div>
-          <span className="text-xl font-bold text-primary tracking-tight">SchoolSync</span>
+          <span className="text-lg font-bold text-primary">SchoolSync Admin</span>
         </div>
-
-        <nav className="flex-1 space-y-2">
-          <button 
-            onClick={() => setActiveTab('overview')}
-            className={activeTab === 'overview' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <LayoutDashboard size={20} /> Overview
-          </button>
-          <button 
-            onClick={() => setActiveTab('teachers')}
-            className={activeTab === 'teachers' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <Briefcase size={20} /> Manage Teachers
-          </button>
-          <button 
-            onClick={() => setActiveTab('classes')}
-            className={activeTab === 'classes' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-          >
-            <GraduationCap size={20} /> Manage Classes
-          </button>
-        </nav>
-
-        <button onClick={logout} className="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600 mt-auto">
-          <LogOut size={20} /> Logout
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-8 overflow-y-auto">
-        <header className="mb-10 flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-slate-800">Admin Console</h2>
-            <p className="text-slate-500 mt-1">Institutional Oversight & Management</p>
-          </div>
+        <div className="flex items-center gap-3">
           <div 
             onClick={() => window.location.href = '/profile'}
-            className="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-all group"
+            className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-primary border border-slate-200"
           >
-             <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-all">
-               <User size={18} />
-             </div>
-             <span className="font-semibold text-slate-700">{localStorage.getItem('username') || 'Admin'}</span>
+            <User size={18} />
           </div>
-        </header>
+          <button onClick={logout} className="text-slate-400">
+            <LogOut size={18} />
+          </button>
+        </div>
+      </nav>
+
+      <div className="flex min-h-screen">
+        {/* Sidebar - Desktop Only */}
+        <div className="hidden lg:flex w-64 bg-white border-r border-slate-200 p-6 flex flex-col sticky top-0 h-screen">
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+              <Shield size={24} />
+            </div>
+            <span className="text-xl font-bold text-primary tracking-tight">SchoolSync</span>
+          </div>
+
+          <nav className="flex-1 space-y-2">
+            <button 
+              onClick={() => setActiveTab('overview')}
+              className={activeTab === 'overview' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <LayoutDashboard size={20} /> Overview
+            </button>
+            <button 
+              onClick={() => setActiveTab('teachers')}
+              className={activeTab === 'teachers' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <Briefcase size={20} /> Manage Teachers
+            </button>
+            <button 
+              onClick={() => setActiveTab('classes')}
+              className={activeTab === 'classes' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <GraduationCap size={20} /> Manage Classes
+            </button>
+          </nav>
+
+          <button onClick={logout} className="sidebar-link text-red-500 hover:bg-red-50 hover:text-red-600 mt-auto">
+            <LogOut size={20} /> Logout
+          </button>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto pb-24 lg:pb-8">
+          <header className="hidden md:flex mb-10 justify-between items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-slate-800">Admin Console</h2>
+              <p className="text-slate-500 mt-1">Institutional Oversight & Management</p>
+            </div>
+            <div 
+              onClick={() => window.location.href = '/profile'}
+              className="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-all group"
+            >
+               <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-all">
+                 <User size={18} />
+               </div>
+               <span className="font-semibold text-slate-700">{localStorage.getItem('username') || 'Admin'}</span>
+            </div>
+          </header>
+
         
         {refreshing && activeTab !== 'overview' && (
           <div className="fixed top-20 right-8 z-50">
@@ -528,6 +551,34 @@ const AdminDashboard = () => {
         message={deleteModal.message}
         isDeleting={isDeleting}
       />
+      {/* Bottom Navigation - Mobile Only */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-nav z-50 pb-safe">
+        <div className="flex justify-around items-center px-2 py-1">
+          <button 
+            onClick={() => setActiveTab('overview')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'overview' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <LayoutDashboard size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">Home</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('teachers')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'teachers' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <Briefcase size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">Teachers</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('classes')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'classes' ? 'mobile-nav-item-active' : ''}`}
+          >
+            <GraduationCap size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">Classes</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

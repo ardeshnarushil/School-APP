@@ -29,3 +29,27 @@ body {
 @utility sidebar-link-active {
   @apply flex items-center gap-3 px-4 py-3 bg-primary-container text-primary font-semibold rounded-md transition-all;
 }
+
+/* --- Mobile Specific Styles --- */
+@utility mobile-nav-item {
+  @apply flex flex-col items-center justify-center gap-1 text-slate-400 py-2 transition-all;
+}
+
+@utility mobile-nav-item-active {
+  @apply text-primary font-bold;
+}
+
+@utility glass-nav {
+  @apply bg-white/80 backdrop-blur-xl border-t border-slate-200/50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)];
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+@layer base {
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
