@@ -1,1 +1,1 @@
-web: gunicorn schoolsync_backend.wsgi
+web: python manage.py migrate && gunicorn schoolsync_backend.wsgi
