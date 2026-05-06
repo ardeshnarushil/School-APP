@@ -1228,6 +1228,7 @@ const TeacherDashboard = () => {
                 </button>
               </form>
             </div>
+          )}
 
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
