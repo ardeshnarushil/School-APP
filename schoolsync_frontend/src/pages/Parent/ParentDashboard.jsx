@@ -38,6 +38,7 @@ const ParentDashboard = () => {
   const [selectedDayAttendance, setSelectedDayAttendance] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 
   const fetchHomework = async (date) => {
@@ -50,6 +51,7 @@ const ParentDashboard = () => {
       
       const res = await api.get(`/api/homework/?date=${formattedDate}`);
       setHomework(res.data);
+      localStorage.setItem('parent_homework', JSON.stringify(res.data));
     } catch (err) {
       console.error(err);
     }
@@ -62,8 +64,36 @@ const ParentDashboard = () => {
   }, [activeTab, selectedHomeworkDate]);
 
   useEffect(() => {
-    fetchData();
+    // Load from cache first
+    const cachedStats = localStorage.getItem('parent_stats');
+    const cachedNotices = localStorage.getItem('parent_notices');
+    const cachedNotifications = localStorage.getItem('parent_notifications');
+    if (cachedStats) setData(JSON.parse(cachedStats));
+    if (cachedNotices) setNotices(JSON.parse(cachedNotices));
+    if (cachedNotifications) setNotifications(JSON.parse(cachedNotifications));
+    
+    // Skip full-screen loader if cached data is present
+    if (cachedStats) setLoading(false);
+    
+    fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'homework' && homework.length === 0) {
+      const cached = localStorage.getItem('parent_homework');
+      if (cached) setHomework(JSON.parse(cached));
+      fetchHomework(selectedHomeworkDate);
+    }
+    if (activeTab === 'results' && (!data || !data.results)) {
+      fetchResults();
+    }
+    if (activeTab === 'exam-timetable' && (!data || !data.exams)) fetchInitialData();
+    if (activeTab === 'attendance' && attendanceRecords.length === 0) {
+      const cached = localStorage.getItem('parent_attendance');
+      if (cached) setAttendanceRecords(JSON.parse(cached));
+      fetchAttendanceHistory();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === 'attendance') {
@@ -93,6 +123,45 @@ const ParentDashboard = () => {
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const fetchInitialData = async () => {
+    if (!localStorage.getItem('parent_stats')) setLoading(true);
+    try {
+      const [statsRes, noticesRes, notifRes] = await Promise.all([
+        api.get('/api/dashboard-stats/'),
+        api.get('/api/notices/'),
+        api.get('/api/notifications/')
+      ]);
+      const mergedData = { ...data, ...statsRes.data };
+      setData(mergedData);
+      setNotices(noticesRes.data);
+      setNotifications(notifRes.data);
+      localStorage.setItem('parent_stats', JSON.stringify(mergedData));
+      localStorage.setItem('parent_notices', JSON.stringify(noticesRes.data));
+      localStorage.setItem('parent_notifications', JSON.stringify(notifRes.data));
+    } finally { setLoading(false); }
+  };
+
+  const fetchResults = async () => {
+    setRefreshing(true);
+    try {
+      const res = await api.get('/api/results/');
+      setData(prev => {
+        const newData = { ...prev, results: res.data };
+        localStorage.setItem('parent_stats', JSON.stringify(newData));
+        return newData;
+      });
+    } finally { setRefreshing(false); }
+  };
+
+  const fetchAttendanceHistory = async () => {
+    setRefreshing(true);
+    try {
+      const res = await api.get('/api/attendance/');
+      setAttendanceRecords(res.data);
+      localStorage.setItem('parent_attendance', JSON.stringify(res.data));
+    } finally { setRefreshing(false); }
   };
 
   const fetchData = async () => {
@@ -474,7 +543,7 @@ const ParentDashboard = () => {
                     {homework.length === 0 && (
                       <div className="bg-slate-50/50 border-4 border-dashed border-slate-200 rounded-[4rem] p-24 text-center">
                         <BookOpen size={60} className="mx-auto text-slate-200 mb-4" />
-                        <h3 className="text-xl font-bold text-slate-400">No Assignments Found</h3>
+                        <h3 className="text-xl font-bold text-slate-400">{t('no_assignments_found')}</h3>
                       </div>
                     )}
                   </div>
@@ -666,54 +735,39 @@ const ParentDashboard = () => {
                             <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('subject')}</th>
                             <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('date')}</th>
                             <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('time_slot')}</th>
-                            <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('status')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                          {selectedExam.subjects.map(sub => {
-                            const isPast = sub.exam_date && new Date(sub.exam_date) < new Date().setHours(0,0,0,0);
-                            const isToday = sub.exam_date && new Date(sub.exam_date).toDateString() === new Date().toDateString();
-                            
-                            return (
-                              <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="py-6">
-                                  <span className="font-bold text-slate-700 text-lg block">{sub.subject_name}</span>
-                                  <span className="text-[10px] font-black text-slate-300 uppercase">{t('official_subject_portal')}</span>
-                                </td>
-                                <td className="py-6">
-                                  <div className="flex flex-col">
-                                    <span className="font-bold text-slate-600">
-                                      {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : t('tba')}
-                                    </span>
-                                    <span className="text-xs text-slate-400 uppercase font-bold">
-                                      {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : 'en-US', { weekday: 'long' }) : ''}
+                          {selectedExam.subjects.map(sub => (
+                            <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="py-6">
+                                <span className="font-bold text-slate-700 text-lg block">{sub.subject_name}</span>
+                                <span className="text-[10px] font-black text-slate-300 uppercase">{t('official_subject_portal')}</span>
+                              </td>
+                              <td className="py-6">
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-slate-600">
+                                    {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : t('tba')}
+                                  </span>
+                                  <span className="text-xs text-slate-400 uppercase font-bold">
+                                    {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : 'en-US', { weekday: 'long' }) : ''}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-6">
+                                {sub.start_time ? (
+                                  <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl w-fit">
+                                    <Clock size={14} className="text-slate-400" />
+                                    <span className="font-black text-slate-700 text-sm">
+                                      {toGujarati(sub.start_time.substring(0, 5))} - {toGujarati(sub.end_time.substring(0, 5))}
                                     </span>
                                   </div>
-                                </td>
-                                <td className="py-6">
-                                  {sub.start_time ? (
-                                    <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl w-fit">
-                                      <Clock size={14} className="text-slate-400" />
-                                      <span className="font-black text-slate-700 text-sm">
-                                        {toGujarati(sub.start_time.substring(0, 5))} - {toGujarati(sub.end_time.substring(0, 5))}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-slate-300 italic">{t('not_scheduled')}</span>
-                                  )}
-                                </td>
-                                <td className="py-6">
-                                  {isToday ? (
-                                    <span className="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">{t('today')}</span>
-                                  ) : isPast ? (
-                                    <span className="bg-slate-100 text-slate-400 px-3 py-1 rounded-full text-[10px] font-black uppercase">{t('past')}</span>
-                                  ) : (
-                                    <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">{t('upcoming')}</span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
+                                ) : (
+                                  <span className="text-slate-300 italic">{t('not_scheduled')}</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
@@ -757,11 +811,11 @@ const ParentDashboard = () => {
               <div className="mt-8 grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-xs font-bold text-slate-400 uppercase mb-1">{t('roll_number')}</p>
-                  <p className="font-bold text-slate-700 text-lg">{viewingStudent.roll_number}</p>
+                  <p className="font-bold text-slate-700 text-lg">{toGujarati(viewingStudent.roll_number)}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-xs font-bold text-slate-400 uppercase mb-1">{t('class')}</p>
-                  <p className="font-bold text-slate-700 text-lg">{viewingStudent.class_name}</p>
+                  <p className="font-bold text-slate-700 text-lg">{toGujarati(viewingStudent.class_name)}</p>
                 </div>
               </div>
 
@@ -777,6 +831,51 @@ const ParentDashboard = () => {
           </div>
         </div>
       )}
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] animate-in fade-in duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[3rem] p-8 pb-12 animate-in slide-in-from-bottom duration-400 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8" />
+            <div className="grid grid-cols-3 gap-6">
+              <button 
+                onClick={() => { setActiveTab('homework'); setIsMobileMenuOpen(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${activeTab === 'homework' ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-500'}`}
+              >
+                <BookOpen size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('homework')}</span>
+              </button>
+              <button 
+                onClick={() => { setActiveTab('results'); setIsMobileMenuOpen(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${activeTab === 'results' ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-500'}`}
+              >
+                <ClipboardCheck size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('results')}</span>
+              </button>
+              <button 
+                onClick={() => { setActiveTab('exam-timetable'); setIsMobileMenuOpen(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${activeTab === 'exam-timetable' ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-500'}`}
+              >
+                <CalendarIcon size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('exam')}</span>
+              </button>
+              <button 
+                onClick={logout}
+                className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-red-50 text-red-500"
+              >
+                <LogOut size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('logout')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Navigation - Mobile Only */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-nav z-50 pb-safe">
         <div className="flex justify-around items-center px-2 py-1">
@@ -808,19 +907,11 @@ const ParentDashboard = () => {
           </button>
 
           <button 
-            onClick={() => setActiveTab('homework')}
-            className={`mobile-nav-item flex-1 ${activeTab === 'homework' ? 'mobile-nav-item-active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(true)}
+            className={`mobile-nav-item flex-1 ${isMobileMenuOpen ? 'mobile-nav-item-active' : ''}`}
           >
-            <BookOpen size={20} />
-            <span className="text-[10px] uppercase font-black tracking-tighter">{t('homework')}</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('results')}
-            className={`mobile-nav-item flex-1 ${activeTab === 'results' ? 'mobile-nav-item-active' : ''}`}
-          >
-            <ClipboardCheck size={20} />
-            <span className="text-[10px] uppercase font-black tracking-tighter">{t('results')}</span>
+            <Settings size={20} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('more')}</span>
           </button>
         </div>
       </div>

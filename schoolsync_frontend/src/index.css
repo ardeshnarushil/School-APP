@@ -1,50 +1,68 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-@config "../tailwind.config.js";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+@theme {
+  --color-primary: #00236f;
+  --color-primary-container: #1e3a8a;
+  --color-primary-dark: #001a54;
+  --color-secondary: #006c49;
+  --color-secondary-container: #6cf8bb;
+  --color-surface: #f8f9ff;
+  --color-surface-dim: #cbdbf5;
+  --color-surface-container: #e5eeff;
+  --color-on-surface: #0b1c30;
+  --color-success: #10B981;
+
+  --font-sans: "Inter", "sans-serif";
+
+  --radius-default: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+}
 
 body {
-  @apply bg-surface text-on-surface font-sans;
+  @apply bg-slate-50 text-slate-900 font-sans antialiased;
 }
 
 @utility card {
-  @apply bg-white border border-slate-200 rounded-md shadow-sm p-4;
+  @apply bg-white border border-slate-100 rounded-[2rem] shadow-sm p-6;
 }
 
 @utility btn-primary {
-  @apply bg-primary text-white px-4 py-2 rounded-md hover:opacity-90 transition-all flex items-center justify-center gap-2;
+  @apply bg-primary text-white px-6 py-3 rounded-2xl hover:bg-primary-dark transition-all flex items-center justify-center gap-2 font-bold shadow-lg shadow-primary/20 active:scale-95;
 }
 
 @utility btn-secondary {
-  @apply border border-slate-300 text-slate-700 px-4 py-2 rounded-md hover:bg-slate-50 transition-all flex items-center justify-center gap-2;
+  @apply border-2 border-slate-200 text-slate-600 px-6 py-3 rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 font-bold;
 }
 
 @utility input-field {
-  @apply w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
+  @apply w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all font-medium text-slate-700;
 }
 
 @utility sidebar-link {
-  @apply flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-primary-container hover:text-primary rounded-md transition-all;
+  @apply flex items-center gap-4 px-6 py-4 text-slate-500 hover:bg-primary/5 hover:text-primary rounded-[1.5rem] transition-all font-bold;
 }
 
 @utility sidebar-link-active {
-  @apply flex items-center gap-3 px-4 py-3 bg-primary-container text-primary font-semibold rounded-md transition-all;
+  @apply flex items-center gap-4 px-6 py-4 bg-primary text-white font-black rounded-[1.5rem] shadow-xl shadow-primary/20 transition-all;
 }
 
 /* --- Mobile Specific Styles --- */
 @utility mobile-nav-item {
-  @apply flex flex-col items-center justify-center gap-1 text-slate-400 py-2 transition-all;
+  @apply flex flex-col items-center justify-center gap-1.5 text-slate-400 py-3 transition-all relative;
 }
 
 @utility mobile-nav-item-active {
-  @apply text-primary font-bold;
+  @apply text-primary font-black;
 }
 
 @utility glass-nav {
-  @apply bg-white/80 backdrop-blur-xl border-t border-slate-200/50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)];
+  @apply bg-white/90 backdrop-blur-2xl border-t border-slate-100 z-[100];
 }
 
 .pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 16px);
+  padding-bottom: env(safe-area-inset-bottom, 24px);
 }
 
 @layer base {
@@ -52,4 +70,5 @@ body {
     -webkit-tap-highlight-color: transparent;
   }
 }
+
 

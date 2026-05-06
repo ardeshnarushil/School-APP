@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api, { getImageUrl } from '../../api';
 import {
   Users, BookOpen, CheckSquare, LogOut,
-  Calendar as CalendarIcon, Plus, Save, Clock, User, RefreshCw, UserPlus, Trash2, Megaphone, Camera, AlertCircle, Settings, X, ClipboardCheck, GraduationCap, Edit, Trash, Award, Languages, LayoutDashboard
+  Calendar as CalendarIcon, Plus, Save, Clock, User, RefreshCw, UserPlus, Trash2, Megaphone, Camera, AlertCircle, Settings, X, ClipboardCheck, GraduationCap, Edit, Trash, Award, Languages, LayoutDashboard, Menu
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Calendar from '../../components/Calendar';
@@ -22,6 +22,42 @@ const TeacherDashboard = () => {
   const toGujarati = (num) => {
     if (i18n.language !== 'gu' || num === null || num === undefined) return num;
     return String(num).split('').map(digit => gujaratiDigits[parseInt(digit)] || digit).join('');
+  };
+
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+          }, 'image/jpeg', 0.7);
+        };
+      };
+    });
   };
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -47,6 +83,8 @@ const TeacherDashboard = () => {
     student_id: ''
   });
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCreatingExam, setIsCreatingExam] = useState(false);
 
   // Attendance and Homework states
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -56,8 +94,36 @@ const TeacherDashboard = () => {
 
 
   useEffect(() => {
-    fetchData();
+    // Load from cache first
+    const cachedStats = localStorage.getItem('teacher_stats');
+    const cachedNotices = localStorage.getItem('teacher_notices');
+    if (cachedStats) setStats(JSON.parse(cachedStats));
+    if (cachedNotices) setNotices(JSON.parse(cachedNotices));
+    
+    // If we have cached data, we can skip the initial full-screen loader
+    if (cachedStats) setLoading(false);
+    
+    fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'students' && students.length === 0) {
+      const cached = localStorage.getItem('teacher_students');
+      if (cached) setStudents(JSON.parse(cached));
+      fetchStudents();
+    }
+    if (activeTab === 'parents' && parents.length === 0) {
+      const cached = localStorage.getItem('teacher_parents');
+      if (cached) setParents(JSON.parse(cached));
+      fetchParents();
+    }
+    if (activeTab === 'exam-timetable' && exams.length === 0) {
+      const cached = localStorage.getItem('teacher_exams');
+      if (cached) setExams(JSON.parse(cached));
+      fetchExams();
+    }
+    if (activeTab === 'results' && exams.length === 0) fetchExams();
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === 'attendance') {
@@ -78,6 +144,52 @@ const TeacherDashboard = () => {
       if (updated) setSelectedExam(updated);
     }
   }, [exams]);
+
+  const fetchInitialData = async () => {
+    // Only show loader if we don't have cached data
+    if (!localStorage.getItem('teacher_stats')) setLoading(true);
+    try {
+      const [statsRes, noticesRes] = await Promise.all([
+        api.get('/api/dashboard-stats/'),
+        api.get('/api/notices/')
+      ]);
+      setStats(statsRes.data);
+      setNotices(noticesRes.data);
+      localStorage.setItem('teacher_stats', JSON.stringify(statsRes.data));
+      localStorage.setItem('teacher_notices', JSON.stringify(noticesRes.data));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStudents = async () => {
+    setRefreshing(true);
+    try {
+      const res = await api.get('/api/students/');
+      setStudents(res.data);
+      localStorage.setItem('teacher_students', JSON.stringify(res.data));
+    } finally { setRefreshing(false); }
+  };
+
+  const fetchParents = async () => {
+    setRefreshing(true);
+    try {
+      const res = await api.get('/api/parents/');
+      setParents(res.data);
+      localStorage.setItem('teacher_parents', JSON.stringify(res.data));
+    } finally { setRefreshing(false); }
+  };
+
+  const fetchExams = async () => {
+    setRefreshing(true);
+    try {
+      const res = await api.get('/api/exams/');
+      setExams(res.data);
+      localStorage.setItem('teacher_exams', JSON.stringify(res.data));
+    } finally { setRefreshing(false); }
+  };
 
   const fetchData = async () => {
     setRefreshing(true);
@@ -312,20 +424,23 @@ const TeacherDashboard = () => {
 
   const handleAddStudent = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append('name', newStudent.name);
-    formData.append('roll_number', newStudent.roll_number);
-    if (stats.class_id) formData.append('school_class', stats.class_id);
-    if (newStudent.photo) formData.append('profile_picture', newStudent.photo);
-
     setSaving(true);
     try {
+      let finalPhoto = newStudent.photo;
+      if (finalPhoto) finalPhoto = await compressImage(finalPhoto);
+      
+      const formData = new FormData();
+      formData.append('name', newStudent.name);
+      formData.append('roll_number', newStudent.roll_number);
+      if (stats.class_id) formData.append('school_class', stats.class_id);
+      if (finalPhoto) formData.append('profile_picture', finalPhoto);
+
       await api.post('/api/students/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       alert('Student added successfully!');
       setNewStudent({ name: '', roll_number: '', photo: null });
-      fetchData();
+      fetchStudents();
     } catch (err) {
       alert('Error adding student');
     } finally {
@@ -335,20 +450,26 @@ const TeacherDashboard = () => {
 
   const handleEditStudent = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append('name', editingStudent.name);
-    formData.append('roll_number', editingStudent.roll_number);
-    if (editingStudent.photo) formData.append('profile_picture', editingStudent.photo);
-
+    setSaving(true);
     try {
+      let finalPhoto = editingStudent.photo;
+      if (finalPhoto) finalPhoto = await compressImage(finalPhoto);
+
+      const formData = new FormData();
+      formData.append('name', editingStudent.name);
+      formData.append('roll_number', editingStudent.roll_number);
+      if (finalPhoto) formData.append('profile_picture', finalPhoto);
+
       await api.patch(`/api/students/${editingStudent.id}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       alert('Student updated successfully!');
       setEditingStudent(null);
-      fetchData();
+      fetchStudents();
     } catch (err) {
       alert('Error updating student');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -375,13 +496,14 @@ const TeacherDashboard = () => {
       }
       
       setNewExamForm({ name: '', subjects: [{ name: '', max_marks: 100, exam_date: '', start_time: '', end_time: '' }] });
+      setIsCreatingExam(false);
       fetchData();
     } catch (err) {
       alert('Failed: ' + JSON.stringify(err.response?.data || err.message));
     }
   };
 
-  const handleEditExamClick = (exam) => {
+   const handleEditExamClick = (exam) => {
     setEditingExam(exam);
     setNewExamForm({
       name: exam.name,
@@ -394,6 +516,8 @@ const TeacherDashboard = () => {
         end_time: s.end_time || ''
       }))
     });
+    setIsCreatingExam(false);
+    setActiveTab('exam-timetable');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -553,6 +677,14 @@ const TeacherDashboard = () => {
         </div>
         <div className="flex items-center gap-2">
           <button 
+            onClick={fetchData}
+            disabled={refreshing}
+            className="p-2 bg-slate-50 text-slate-500 rounded-full hover:bg-primary/5 hover:text-primary transition-all border border-slate-100 active:scale-95"
+            title="Refresh Page"
+          >
+            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+          </button>
+          <button 
             onClick={toggleLanguage}
             className="bg-slate-50 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 border border-slate-100"
           >
@@ -617,16 +749,16 @@ const TeacherDashboard = () => {
               <ClipboardCheck size={20} /> {t('exam_results')}
             </button>
             <button
-              onClick={() => setActiveTab('parents')}
-              className={activeTab === 'parents' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
-            >
-              <UserPlus size={20} /> {t('manage_parents')}
-            </button>
-            <button
               onClick={() => setActiveTab('exam-timetable')}
               className={activeTab === 'exam-timetable' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
             >
               <CalendarIcon size={20} /> {t('exam_timetable')}
+            </button>
+            <button
+              onClick={() => setActiveTab('parents')}
+              className={activeTab === 'parents' ? 'sidebar-link-active w-full' : 'sidebar-link w-full'}
+            >
+              <UserPlus size={20} /> {t('manage_parents')}
             </button>
           </nav>
 
@@ -656,6 +788,14 @@ const TeacherDashboard = () => {
             <p className="text-slate-500">Class {stats.class_name} • Instructor: {localStorage.getItem('username')}</p>
           </div>
           <div className="flex gap-4 items-center">
+            <button 
+              onClick={fetchData}
+              disabled={refreshing}
+              className="hidden md:flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border-2 border-slate-100 shadow-sm text-slate-600 font-bold hover:bg-primary/5 hover:text-primary transition-all active:scale-95 group"
+            >
+              <RefreshCw size={18} className={refreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
             <div
               onClick={() => window.location.href = '/profile'}
               className="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-all group"
@@ -708,47 +848,47 @@ const TeacherDashboard = () => {
             {/* Add Student Form */}
             <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
               <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-primary">
-                <Plus size={22} /> Add New Student
+                <Plus size={22} /> {t('add_new_student')}
               </h3>
               <form onSubmit={handleAddStudent} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t('full_name')}</label>
                   <input 
-                    type="text" className="input-field" placeholder="Student Name"
+                    type="text" className="input-field" placeholder={t('name')}
                     value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Roll Number</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">{t('roll_no')}</label>
                   <input 
-                    type="text" className="input-field" placeholder="Roll No"
+                    type="text" className="input-field" placeholder={t('roll_no')}
                     value={newStudent.roll_number} onChange={e => setNewStudent({...newStudent, roll_number: e.target.value})}
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1">
-                    <Camera size={14} /> Profile Photo
+                    <Camera size={14} /> {t('profile_photo')}
                   </label>
                   <input 
                     type="file" className="input-field py-1" accept="image/*"
                     onChange={e => setNewStudent({...newStudent, photo: e.target.files[0]})}
                   />
                 </div>
-                <button type="submit" className="btn-primary py-3">Add Student</button>
+                <button type="submit" className="btn-primary py-3">{t('add_student')}</button>
               </form>
             </div>
 
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold text-slate-800">Assigned Students</h3>
+              <h3 className="text-xl font-bold text-slate-800">{t('assigned_students')}</h3>
               <button
                 onClick={fetchData}
                 disabled={refreshing}
                 className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-primary transition-all"
               >
                 <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
+                {refreshing ? t('refreshing') : t('refresh')}
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -772,7 +912,7 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-slate-800">{student.name}</h3>
-                      <p className="text-sm text-slate-500">Roll: {student.roll_number}</p>
+                      <p className="text-sm text-slate-500">{t('roll')}: {toGujarati(student.roll_number)}</p>
                     </div>
                     <div className="flex flex-col gap-2">
                       <button 
@@ -808,13 +948,13 @@ const TeacherDashboard = () => {
                 <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
                   <Plus size={20} />
                 </div>
-                <h3 className="text-2xl font-black text-slate-800">New Assignment</h3>
+                <h3 className="text-2xl font-black text-slate-800">{t('new_assignment')}</h3>
               </div>
               
               <form onSubmit={handlePostHomework} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <input
-                    type="text" className="input-field py-4" placeholder="Assignment Title"
+                    type="text" className="input-field py-4" placeholder={t('assignment_title')}
                     value={homeworkForm.title} onChange={e => setHomeworkForm({ ...homeworkForm, title: e.target.value })}
                     required
                   />
@@ -824,16 +964,16 @@ const TeacherDashboard = () => {
                       value={homeworkForm.due_date} onChange={e => setHomeworkForm({ ...homeworkForm, due_date: e.target.value })}
                       required
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase pointer-events-none">Due Date</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase pointer-events-none">{t('due_date')}</span>
                   </div>
                 </div>
                 <textarea
-                  className="input-field min-h-[120px] py-4" placeholder="Instructions..."
+                  className="input-field min-h-[120px] py-4" placeholder={t('instructions')}
                   value={homeworkForm.description} onChange={e => setHomeworkForm({ ...homeworkForm, description: e.target.value })}
                   required
-                />
+                ></textarea>
                 <button type="submit" className="btn-primary w-full py-5 shadow-2xl shadow-primary/30 text-lg font-black rounded-2xl">
-                   Publish Now
+                   {t('publish_now')}
                 </button>
               </form>
             </div>
@@ -842,7 +982,7 @@ const TeacherDashboard = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center px-4">
                 <h3 className="text-xl font-bold text-slate-800">
-                  Tasks for {selectedHomeworkDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                  {t('tasks_for')} {selectedHomeworkDate.toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : 'en-US', { month: 'long', day: 'numeric' })}
                 </h3>
               </div>
 
@@ -852,7 +992,7 @@ const TeacherDashboard = () => {
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <h4 className="text-lg font-bold text-slate-800 group-hover:text-primary transition-colors">{hw.title}</h4>
-                        <p className="text-xs font-semibold text-slate-400">Due Date: {hw.due_date}</p>
+                        <p className="text-xs font-semibold text-slate-400">{t('due_date')}: {toGujarati(hw.due_date)}</p>
                         <p className="text-slate-600 text-sm mt-3 leading-relaxed">{hw.description}</p>
                       </div>
                       <button onClick={() => handleDeleteHomework(hw.id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
@@ -865,7 +1005,7 @@ const TeacherDashboard = () => {
                 {homework.length === 0 && (
                   <div className="bg-slate-50/50 border-4 border-dashed border-slate-100 rounded-[4rem] p-24 text-center">
                     <BookOpen size={60} className="mx-auto text-slate-200 mb-4" />
-                    <h3 className="text-xl font-bold text-slate-400">No Assignments Found</h3>
+                    <h3 className="text-xl font-bold text-slate-400">{t('no_assignments_found')}</h3>
                   </div>
                 )}
               </div>
@@ -874,74 +1014,106 @@ const TeacherDashboard = () => {
         )}
 
         {activeTab === 'attendance' && (
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className="w-full lg:w-auto">
-              <Calendar onDateSelect={setSelectedDate} selectedDate={selectedDate} />
+          <div className="space-y-8 animate-in fade-in slide-in-from-right duration-500 pb-20">
+            <div className="flex flex-col gap-1">
+              <h1 className="text-4xl font-black text-indigo-900 tracking-tight">{t('attendance')}</h1>
+              <p className="text-slate-500 font-bold">{t('class')} {toGujarati(stats.class_name)}</p>
             </div>
 
-            <div className="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px] relative">
-              {refreshing && (
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 p-8">
-                  <Skeleton type="table" />
+            <Calendar onDateSelect={setSelectedDate} selectedDate={selectedDate} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-primary/5/50 p-6 rounded-[2.5rem] border border-primary/10/50 flex flex-col gap-4">
+                <div className="bg-primary/10 w-12 h-12 rounded-2xl flex items-center justify-center text-primary">
+                  <Users size={24} strokeWidth={2.5} />
                 </div>
-              )}
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <div className="flex items-center gap-4">
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <CalendarIcon className="text-primary" size={20} />
-                    Attendance: {selectedDate.toLocaleDateString()}
-                  </h3>
-                  <button
-                    onClick={() => fetchAttendanceForDate(selectedDate)}
-                    disabled={refreshing}
-                    className="p-1.5 hover:bg-slate-200 rounded-full text-slate-400 transition-all"
-                    title="Reload attendance for this date"
-                  >
-                    <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-                  </button>
+                <div>
+                  <div className="text-3xl font-black text-indigo-900">
+                    {toGujarati(students.filter(s => attendance[s.id] === 'PRESENT').length)}/{toGujarati(students.length)}
+                  </div>
+                  <div className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">{t('present_today')}</div>
                 </div>
-                <button onClick={saveAttendance} className="btn-primary py-2">
-                  <Save size={18} /> Save Attendance
-                </button>
               </div>
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-100">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Student</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Roll No</th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {students.map(student => (
-                    <tr key={student.id} className="hover:bg-slate-50 transition-all">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center text-[10px] font-bold text-primary">
-                            {student.profile_picture ? (
-                              <img src={getImageUrl(student.profile_picture)} className="w-full h-full object-cover" />
-                            ) : student.name.charAt(0)}
-                          </div>
-                          <span className="font-semibold text-slate-700">{student.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-500">{student.roll_number}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => toggleAttendance(student.id)}
-                          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${attendance[student.id] === 'PRESENT'
-                              ? 'bg-green-100 text-green-600 border border-green-200 shadow-sm'
-                              : 'bg-red-100 text-red-600 border border-red-200 shadow-sm'
-                            }`}
-                        >
-                          {attendance[student.id] || 'ABSENT'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+              <div className="bg-orange-50/50 p-6 rounded-[2.5rem] border border-orange-100/50 flex flex-col gap-4">
+                <div className="bg-orange-100 w-12 h-12 rounded-2xl flex items-center justify-center text-orange-600">
+                  <UserPlus size={24} strokeWidth={2.5} className="rotate-45" />
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-orange-900">
+                    {toGujarati(students.filter(s => attendance[s.id] === 'ABSENT' || !attendance[s.id]).length)}
+                  </div>
+                  <div className="text-[10px] font-black uppercase text-orange-400 tracking-widest">{t('absent')}</div>
+                </div>
+              </div>
             </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center justify-between px-2">
+                <h2 className="text-2xl font-black text-slate-800">{t('students')}</h2>
+                <span className="text-xs font-bold text-slate-400">{t('roll_no')}</span>
+              </div>
+
+              <div className="space-y-3">
+                {students.map((student) => (
+                  <div key={student.id} className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden ring-2 ring-slate-50 flex items-center justify-center text-primary font-black">
+                          {student.profile_picture ? (
+                            <img 
+                              src={getImageUrl(student.profile_picture)} 
+                              alt={student.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : student.name.charAt(0)}
+                        </div>
+                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${attendance[student.id] === 'PRESENT' ? 'bg-green-500' : 'bg-red-500'}`} />
+                      </div>
+                      <div>
+                        <h4 className="font-black text-slate-800 text-lg leading-tight">{student.name}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs font-bold text-slate-400">{t('roll_no')}: {toGujarati(student.roll_number) || 'N/A'}</span>
+                          <span className="bg-green-50 text-[10px] font-black text-green-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">98% AVG</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => toggleAttendance(student.id)}
+                        className={`px-4 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-xs uppercase
+                          ${attendance[student.id] === 'PRESENT' 
+                            ? 'bg-primary text-white shadow-lg shadow-primary/10' 
+                            : 'bg-slate-50 text-slate-400 hover:bg-primary/5 hover:text-primary'}`}
+                      >
+                        <CheckSquare size={16} strokeWidth={3} />
+                        <span className="hidden sm:inline">{t('present')}</span>
+                      </button>
+                      <button
+                        onClick={() => toggleAttendance(student.id)}
+                        className={`px-4 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-xs uppercase
+                          ${attendance[student.id] === 'ABSENT' || !attendance[student.id]
+                            ? 'bg-orange-500 text-white shadow-lg shadow-orange-100' 
+                            : 'bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600'}`}
+                      >
+                        <X size={16} strokeWidth={3} />
+                        <span className="hidden sm:inline">{t('absent')}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={saveAttendance}
+              disabled={saving}
+              className="fixed bottom-24 left-10 right-10 bg-primary text-white p-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-indigo-200 flex items-center justify-center gap-3 active:scale-95 transition-all z-40 lg:relative lg:bottom-0 lg:left-0 lg:right-0 lg:w-full"
+            >
+              <Save size={24} strokeWidth={3} />
+              {saving ? t('saving') : t('save_attendance')}
+            </button>
           </div>
         )}
         {activeTab === 'parents' && (
@@ -950,14 +1122,14 @@ const TeacherDashboard = () => {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-500"></div>
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h3 className="text-2xl font-black text-slate-800">{editingParent ? 'Update Parent Account' : 'Register New Parent'}</h3>
+                  <h3 className="text-2xl font-black text-slate-800">{editingParent ? t('update_parent_account') : t('add_parent_account')}</h3>
                   <p className="text-slate-500 text-sm">Fill in the login credentials for the parent</p>
                 </div>
                 {editingParent && (
                   <button onClick={() => {
                     setEditingParent(null);
                     setNewParent({ username: '', email: '', password: '', first_name: '', last_name: '', student_id: '' });
-                  }} className="text-red-500 font-bold hover:underline">Cancel Edit</button>
+                  }} className="text-red-500 font-bold hover:underline">{t('cancel')}</button>
                 )}
               </div>
               <form onSubmit={handleCreateParent} className="space-y-6">
@@ -981,7 +1153,7 @@ const TeacherDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Username</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('username')}</label>
                     <input
                       type="text" className="input-field disabled:opacity-50" placeholder="parent_username"
                       value={newParent.username} onChange={e => setNewParent({ ...newParent, username: e.target.value })}
@@ -990,7 +1162,7 @@ const TeacherDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('email')}</label>
                     <input
                       type="email" className="input-field disabled:opacity-50" placeholder="parent@mail.com"
                       value={newParent.email} onChange={e => setNewParent({ ...newParent, email: e.target.value })}
@@ -999,7 +1171,7 @@ const TeacherDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">{editingParent ? "New Password (Optional)" : "Password"}</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{editingParent ? "New Password (Optional)" : t('password')}</label>
                     <input
                       type="password" className="input-field disabled:opacity-50" placeholder="••••••••"
                       value={newParent.password} onChange={e => setNewParent({ ...newParent, password: e.target.value })}
@@ -1017,7 +1189,7 @@ const TeacherDashboard = () => {
                     >
                       <option value="">Select Child</option>
                       {students.map(s => (
-                        <option key={s.id} value={s.id}>{s.name} (Roll: {s.roll_number})</option>
+                        <option key={s.id} value={s.id}>{s.name} ({t('roll')}: {toGujarati(s.roll_number)})</option>
                       ))}
                     </select>
                   </div>
@@ -1030,10 +1202,10 @@ const TeacherDashboard = () => {
                   {saving ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      Processing Request...
+                      Processing...
                     </>
                   ) : (
-                    editingParent ? 'Update Parent Account' : 'Create Parent Account & Sync with Student'
+                    editingParent ? t('update_parent') : t('register_parent')
                   )}
                 </button>
               </form>
@@ -1101,93 +1273,19 @@ const TeacherDashboard = () => {
 
         {activeTab === 'results' && (
           <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-500 to-primary"></div>
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div>
-                  <h2 className="text-3xl font-black text-slate-800">{editingExam ? 'Edit Exam Subjects' : 'Create New Exam Category'}</h2>
-                  <p className="text-slate-500 mt-1">Define subjects and maximum marks for grading</p>
-                </div>
-                {editingExam && (
-                  <button 
-                    onClick={() => {
-                      setEditingExam(null);
-                      setNewExamForm({ name: '', subjects: [{ name: '', max_marks: 100 }] });
-                    }}
-                    className="text-red-500 font-bold hover:underline"
-                  >
-                    Cancel Editing
-                  </button>
-                )}
+            <div className="flex justify-between items-center px-2">
+              <div>
+                <h2 className="text-3xl font-black text-slate-800">{t('student_grading')}</h2>
+                <p className="text-slate-500 mt-1">{t('select_exam_category_desc')}</p>
               </div>
-              
-              <form onSubmit={handleAddExam} className="mt-8 space-y-6">
-                  <input 
-                    type="text" placeholder="Exam Category Name (e.g., Final Term)" 
-                    className="input-field py-4 text-lg font-bold w-full"
-                    value={newExamForm.name} onChange={e => setNewExamForm({...newExamForm, name: e.target.value})}
-                    required
-                  />
-
-                <div className="space-y-3">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Define Subjects & Max Marks</p>
-                  {newExamForm.subjects.map((sub, idx) => (
-                    <div key={idx} className="grid grid-cols-1 lg:grid-cols-4 gap-3 animate-in slide-in-from-left duration-300 items-end">
-                      <div className="lg:col-span-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Subject Name</label>
-                        <input 
-                          type="text" placeholder="Subject" 
-                          className="input-field"
-                          value={sub.name} onChange={e => {
-                            const subs = [...newExamForm.subjects];
-                            subs[idx].name = e.target.value;
-                            setNewExamForm({...newExamForm, subjects: subs});
-                          }}
-                          required
-                        />
-                      </div>
-                      <div className="lg:col-span-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Max Marks</label>
-                        <input 
-                          type="number" placeholder="Max" 
-                          className="input-field"
-                          value={sub.max_marks} onChange={e => {
-                            const subs = [...newExamForm.subjects];
-                            subs[idx].max_marks = parseInt(e.target.value);
-                            setNewExamForm({...newExamForm, subjects: subs});
-                          }}
-                          required
-                        />
-                      </div>
-                      <div className="lg:col-span-1">
-                        {idx > 0 && (
-                          <button 
-                            type="button" 
-                            onClick={() => {
-                              const subs = newExamForm.subjects.filter((_, i) => i !== idx);
-                              setNewExamForm({...newExamForm, subjects: subs});
-                            }}
-                            className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition-all"
-                          >
-                            <Trash size={20} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  <button 
-                    type="button" 
-                    onClick={() => setNewExamForm({...newExamForm, subjects: [...newExamForm.subjects, { name: '', max_marks: 100 }]})}
-                    className="text-primary font-bold text-sm flex items-center gap-2 hover:translate-x-1 transition-transform"
-                  >
-                    <Plus size={16} /> Add Another Subject
-                  </button>
-                </div>
-
-                <button type="submit" className="btn-primary w-full py-4 shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
-                  <GraduationCap size={20} /> {editingExam ? 'Update Exam Subjects' : 'Create Exam Category'}
-                </button>
-              </form>
+              <button
+                onClick={fetchData}
+                disabled={refreshing}
+                className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-primary transition-all"
+              >
+                <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                {refreshing ? t('refreshing') : t('refresh')}
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1233,27 +1331,9 @@ const TeacherDashboard = () => {
                     <div className="flex-1">
                       <h4 className="font-bold text-lg leading-tight">{exam.name}</h4>
                       <p className={`text-xs mt-1 ${selectedExam?.id === exam.id ? 'text-white/70' : 'text-slate-400'}`}>
-                        {exam.subjects?.length || 0} Subjects Included
+                        {t('click_to_start_grading')}
                       </p>
                     </div>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-slate-100/10 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${exam.is_visible ? 'bg-green-400 animate-pulse' : 'bg-slate-300'}`}></div>
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${selectedExam?.id === exam.id ? 'text-white/80' : 'text-slate-400'}`}>
-                        {exam.is_visible ? 'Visible to Parents' : 'Hidden from Parents'}
-                      </span>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
-                        checked={exam.is_visible} 
-                        onChange={() => toggleExamVisibility(exam.id, exam.is_visible)} 
-                      />
-                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
-                    </label>
                   </div>
                 </div>
               ))}
@@ -1263,9 +1343,17 @@ const TeacherDashboard = () => {
               <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in duration-300">
                 <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                   <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                    <ClipboardCheck className="text-primary" size={28} /> Grading: {selectedExam.name}
+                    <ClipboardCheck className="text-primary" size={28} /> {t('grading_title', { name: selectedExam.name })}
                   </h3>
-                  <button onClick={() => setSelectedExam(null)} className="btn-secondary py-2 px-4 text-xs">Switch Exam</button>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => handleEditExamClick(selectedExam)} 
+                      className="bg-white/20 hover:bg-white/30 text-primary-dark border border-primary/20 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+                    >
+                      <Edit size={14} /> {t('edit_exam')}
+                    </button>
+                    <button onClick={() => setSelectedExam(null)} className="btn-secondary py-2 px-4 text-xs">{t('switch_exam')}</button>
+                  </div>
                 </div>
                 <div className="overflow-x-auto relative min-h-[300px]">
                   {refreshing && (
@@ -1276,10 +1364,10 @@ const TeacherDashboard = () => {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="bg-slate-50/50 border-b border-slate-100">
-                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Student Information</th>
-                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Select Subject to Mark</th>
-                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Saved Performance</th>
-                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Aggregate</th>
+                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('student_info')}</th>
+                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('select_subject_to_mark')}</th>
+                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('saved_performance')}</th>
+                        <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('aggregate')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
@@ -1296,7 +1384,7 @@ const TeacherDashboard = () => {
                                 </div>
                                 <div>
                                   <span className="font-black text-slate-700 block">{student.name}</span>
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Roll No: {student.roll_number}</span>
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('roll_no')}: {toGujarati(student.roll_number)}</span>
                                 </div>
                               </div>
                             </td>
@@ -1313,11 +1401,11 @@ const TeacherDashboard = () => {
                                     e.target.value = "";
                                   }}
                                 >
-                                  <option value="">Select Subject...</option>
+                                  <option value="">{t('select_subject_prompt')}</option>
                                   {selectedExam.subjects.map(sub => (
                                     <option key={sub.id} value={sub.id}>
-                                      {sub.subject_name} ({sub.max_marks} marks) 
-                                      {sub.exam_date ? ` - ${sub.exam_date}` : ''}
+                                      {sub.subject_name} ({toGujarati(sub.max_marks)} {t('marks_label')}) 
+                                      {sub.exam_date ? ` - ${toGujarati(sub.exam_date)}` : ''}
                                     </option>
                                   ))}
                                 </select>
@@ -1376,6 +1464,7 @@ const TeacherDashboard = () => {
                 <button 
                   onClick={() => {
                     setEditingExam(null);
+                    setIsCreatingExam(true);
                     setNewExamForm({ name: '', subjects: [{ name: '', max_marks: 100, exam_date: '', start_time: '', end_time: '' }] });
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }} 
@@ -1390,127 +1479,128 @@ const TeacherDashboard = () => {
             </div>
 
             {/* Exam Creation/Edit Form */}
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-500 to-primary"></div>
-              <h3 className="text-2xl font-black text-slate-800 mb-6">{editingExam ? 'Edit Exam Category' : 'Create New Exam Category'}</h3>
-              <form onSubmit={handleAddExam} className="space-y-6">
-                <input 
-                  type="text" placeholder="Exam Name (e.g., Final Term)" 
-                  className="input-field py-4 text-lg font-bold w-full"
-                  value={newExamForm.name} onChange={e => setNewExamForm({...newExamForm, name: e.target.value})}
-                  required
-                />
+            {(isCreatingExam || editingExam) && (
+              <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-500 to-primary"></div>
+                <h3 className="text-2xl font-black text-slate-800 mb-6">{editingExam ? 'Edit Exam Category' : 'Create New Exam Category'}</h3>
+                <form onSubmit={handleAddExam} className="space-y-6">
+                  <input 
+                    type="text" placeholder="Exam Name (e.g., Final Term)" 
+                    className="input-field py-4 text-lg font-bold w-full"
+                    value={newExamForm.name} onChange={e => setNewExamForm({...newExamForm, name: e.target.value})}
+                    required
+                  />
 
-                <div className="space-y-3">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Define Subjects & Schedule</p>
-                  {newExamForm.subjects.map((sub, idx) => (
-                    <div key={idx} className="grid grid-cols-1 lg:grid-cols-5 gap-3 animate-in slide-in-from-left duration-300 items-end">
-                      <div className="lg:col-span-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Subject</label>
-                        <input 
-                          type="text" placeholder="Subject" 
-                          className="input-field"
-                          value={sub.name} onChange={e => {
-                            const subs = [...newExamForm.subjects];
-                            subs[idx].name = e.target.value;
-                            setNewExamForm({...newExamForm, subjects: subs});
-                          }}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Max Marks</label>
-                        <input 
-                          type="number" placeholder="Max" 
-                          className="input-field"
-                          value={sub.max_marks} onChange={e => {
-                            const subs = [...newExamForm.subjects];
-                            subs[idx].max_marks = parseInt(e.target.value);
-                            setNewExamForm({...newExamForm, subjects: subs});
-                          }}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Date</label>
-                        <input 
-                          type="date" 
-                          className="input-field"
-                          value={sub.exam_date || ''} onChange={e => {
-                            const subs = [...newExamForm.subjects];
-                            subs[idx].exam_date = e.target.value;
-                            setNewExamForm({...newExamForm, subjects: subs});
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Start Time</label>
-                        <input 
-                          type="time" 
-                          className="input-field"
-                          value={sub.start_time || ''} onChange={e => {
-                            const subs = [...newExamForm.subjects];
-                            subs[idx].start_time = e.target.value;
-                            setNewExamForm({...newExamForm, subjects: subs});
-                          }}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">End Time</label>
+                  <div className="space-y-3">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Define Subjects & Schedule</p>
+                    {newExamForm.subjects.map((sub, idx) => (
+                      <div key={idx} className="grid grid-cols-1 lg:grid-cols-5 gap-3 animate-in slide-in-from-left duration-300 items-end">
+                        <div className="lg:col-span-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Subject</label>
                           <input 
-                            type="time" 
+                            type="text" placeholder="Subject" 
                             className="input-field"
-                            value={sub.end_time || ''} onChange={e => {
+                            value={sub.name} onChange={e => {
                               const subs = [...newExamForm.subjects];
-                              subs[idx].end_time = e.target.value;
+                              subs[idx].name = e.target.value;
+                              setNewExamForm({...newExamForm, subjects: subs});
+                            }}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Max Marks</label>
+                          <input 
+                            type="number" placeholder="Max" 
+                            className="input-field"
+                            value={sub.max_marks} onChange={e => {
+                              const subs = [...newExamForm.subjects];
+                              subs[idx].max_marks = parseInt(e.target.value);
+                              setNewExamForm({...newExamForm, subjects: subs});
+                            }}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Date</label>
+                          <input 
+                            type="date" 
+                            className="input-field"
+                            value={sub.exam_date || ''} onChange={e => {
+                              const subs = [...newExamForm.subjects];
+                              subs[idx].exam_date = e.target.value;
                               setNewExamForm({...newExamForm, subjects: subs});
                             }}
                           />
                         </div>
-                        {idx > 0 && (
-                          <button 
-                            type="button" 
-                            onClick={() => {
-                              const subs = newExamForm.subjects.filter((_, i) => i !== idx);
+                        <div>
+                          <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">Start Time</label>
+                          <input 
+                            type="time" 
+                            className="input-field"
+                            value={sub.start_time || ''} onChange={e => {
+                              const subs = [...newExamForm.subjects];
+                              subs[idx].start_time = e.target.value;
                               setNewExamForm({...newExamForm, subjects: subs});
                             }}
-                            className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition-all"
-                          >
-                            <Trash size={20} />
-                          </button>
-                        )}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase mb-1 block">End Time</label>
+                            <input 
+                              type="time" 
+                              className="input-field"
+                              value={sub.end_time || ''} onChange={e => {
+                                const subs = [...newExamForm.subjects];
+                                subs[idx].end_time = e.target.value;
+                                setNewExamForm({...newExamForm, subjects: subs});
+                              }}
+                            />
+                          </div>
+                          {idx > 0 && (
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const subs = newExamForm.subjects.filter((_, i) => i !== idx);
+                                setNewExamForm({...newExamForm, subjects: subs});
+                              }}
+                              className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition-all"
+                            >
+                              <Trash size={20} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  <button 
-                    type="button" 
-                    onClick={() => setNewExamForm({...newExamForm, subjects: [...newExamForm.subjects, { name: '', max_marks: 100, exam_date: '', start_time: '', end_time: '' }]})}
-                    className="text-primary font-bold text-sm flex items-center gap-2 hover:translate-x-1 transition-transform"
-                  >
-                    <Plus size={16} /> Add Another Subject
-                  </button>
-                </div>
+                    ))}
+                    <button 
+                      type="button" 
+                      onClick={() => setNewExamForm({...newExamForm, subjects: [...newExamForm.subjects, { name: '', max_marks: 100, exam_date: '', start_time: '', end_time: '' }]})}
+                      className="text-primary font-bold text-sm flex items-center gap-2 hover:translate-x-1 transition-transform"
+                    >
+                      <Plus size={16} /> Add Another Subject
+                    </button>
+                  </div>
 
-                <div className="flex gap-4">
-                  <button type="submit" className="btn-primary flex-1 py-4 shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
-                    <GraduationCap size={20} /> {editingExam ? 'Update Exam Category' : 'Create Exam Category'}
-                  </button>
-                  {editingExam && (
+                  <div className="flex gap-4">
+                    <button type="submit" className="btn-primary flex-1 py-4 shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
+                      <GraduationCap size={20} /> {editingExam ? 'Update Exam Category' : 'Create Exam Category'}
+                    </button>
                     <button 
                       type="button"
                       onClick={() => {
                         setEditingExam(null);
+                        setIsCreatingExam(false);
                         setNewExamForm({ name: '', subjects: [{ name: '', max_marks: 100, exam_date: '', start_time: '', end_time: '' }] });
                       }}
                       className="bg-slate-100 text-slate-600 px-8 rounded-xl font-bold hover:bg-slate-200 transition-all"
                     >
                       Cancel
                     </button>
-                  )}
-                </div>
-              </form>
-            </div>
+                  </div>
+                </form>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {exams.map(exam => (
@@ -1557,6 +1647,24 @@ const TeacherDashboard = () => {
                       <p className={`text-xs mt-1 ${selectedExam?.id === exam.id ? 'text-white/70' : 'text-slate-400'}`}>Click to view schedule</p>
                     </div>
                   </div>
+
+                  <div className="mt-6 pt-4 border-t border-slate-100/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${exam.is_visible ? 'bg-green-400 animate-pulse' : 'bg-slate-300'}`}></div>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${selectedExam?.id === exam.id ? 'text-white/80' : 'text-slate-400'}`}>
+                        {exam.is_visible ? 'Visible to Parents' : 'Hidden from Parents'}
+                      </span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={exam.is_visible} 
+                        onChange={() => toggleExamVisibility(exam.id, exam.is_visible)} 
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1572,7 +1680,15 @@ const TeacherDashboard = () => {
                       <h3 className="text-4xl font-black">{selectedExam.name} Timetable</h3>
                       <p className="text-primary-foreground/70 font-medium mt-1 uppercase tracking-widest">Official Examination Schedule</p>
                     </div>
-                    <button onClick={() => setSelectedExam(null)} className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-xl text-xs font-bold hover:bg-white/30 transition-all">Switch Exam</button>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => handleEditExamClick(selectedExam)} 
+                        className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-xl text-xs font-bold hover:bg-white/30 transition-all flex items-center gap-2"
+                      >
+                        <Edit size={14} /> Edit Exam
+                      </button>
+                      <button onClick={() => setSelectedExam(null)} className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-xl text-xs font-bold hover:bg-white/30 transition-all">Switch Exam</button>
+                    </div>
                   </div>
                 </div>
 
@@ -1580,57 +1696,41 @@ const TeacherDashboard = () => {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b-2 border-slate-100">
-                        <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">Subject</th>
-                        <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">Date</th>
-                        <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">Time Slot</th>
-                        <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">Status</th>
+                        <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('subject')}</th>
+                        <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('date')}</th>
+                        <th className="pb-6 text-xs font-black text-slate-400 uppercase tracking-widest">{t('time_slot')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {selectedExam.subjects.map(sub => {
-                        const isPast = sub.exam_date && new Date(sub.exam_date) < new Date().setHours(0,0,0,0);
-                        const isToday = sub.exam_date && new Date(sub.exam_date).toDateString() === new Date().toDateString();
-                        
-                        return (
-                          <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-6">
-                              <span className="font-bold text-slate-700 text-lg block">{sub.subject_name}</span>
-                              <span className="text-[10px] font-black text-slate-300 uppercase">Subject Code: {sub.id}</span>
-                            </td>
-                            <td className="py-6">
-                              <div className="flex flex-col">
-                                <span className="font-bold text-slate-600">
-                                  {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'TBA'}
-                                </span>
-                                <span className="text-xs text-slate-400 uppercase font-bold">
-                                  {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString('en-US', { weekday: 'long' }) : ''}
+                      {selectedExam.subjects.map(sub => (
+                        <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-6">
+                            <span className="font-bold text-slate-700 text-lg block">{sub.subject_name}</span>
+                          </td>
+                          <td className="py-6">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-600">
+                                {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : t('tba')}
+                              </span>
+                              <span className="text-xs text-slate-400 uppercase font-bold">
+                                {sub.exam_date ? new Date(sub.exam_date).toLocaleDateString(i18n.language === 'gu' ? 'gu-IN' : 'en-US', { weekday: 'long' }) : ''}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-6">
+                            {sub.start_time ? (
+                              <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl w-fit">
+                                <Clock size={14} className="text-slate-400" />
+                                <span className="font-black text-slate-700 text-sm">
+                                  {toGujarati(sub.start_time.substring(0, 5))} - {toGujarati(sub.end_time.substring(0, 5))}
                                 </span>
                               </div>
-                            </td>
-                            <td className="py-6">
-                              {sub.start_time ? (
-                                <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl w-fit">
-                                  <Clock size={14} className="text-slate-400" />
-                                  <span className="font-black text-slate-700 text-sm">
-                                    {sub.start_time.substring(0, 5)} - {sub.end_time.substring(0, 5)}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-slate-300 italic">Not Scheduled</span>
-                              )}
-                            </td>
-                            <td className="py-6">
-                              {isToday ? (
-                                <span className="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Today</span>
-                              ) : isPast ? (
-                                <span className="bg-slate-100 text-slate-400 px-3 py-1 rounded-full text-[10px] font-black uppercase">Completed</span>
-                              ) : (
-                                <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Upcoming</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                            ) : (
+                              <span className="text-slate-300 italic">{t('not_scheduled')}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -1638,8 +1738,8 @@ const TeacherDashboard = () => {
             ) : (
               <div className="bg-slate-50 border-4 border-dashed border-slate-200 rounded-[4rem] p-32 text-center">
                 <CalendarIcon size={80} className="mx-auto text-slate-200 mb-6 animate-pulse" />
-                <h3 className="text-3xl font-black text-slate-400">Select Exam Category</h3>
-                <p className="text-slate-400 mt-2 font-medium max-w-sm mx-auto text-lg">Click on an exam category card above to view the full subject-wise schedule.</p>
+                <h3 className="text-3xl font-black text-slate-400">{t('select_exam_category')}</h3>
+                <p className="text-slate-400 mt-2 font-medium max-w-sm mx-auto text-lg">{t('click_to_view_schedule')}</p>
               </div>
             )}
           </div>
@@ -1755,14 +1855,59 @@ const TeacherDashboard = () => {
         isDeleting={isDeleting}
       />
 
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] animate-in fade-in duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[3rem] p-8 pb-12 animate-in slide-in-from-bottom duration-400 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8" />
+            <div className="grid grid-cols-3 gap-6">
+              <button 
+                onClick={() => { setActiveTab('homework'); setIsMobileMenuOpen(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${activeTab === 'homework' ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-500'}`}
+              >
+                <Plus size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('homework')}</span>
+              </button>
+              <button 
+                onClick={() => { setActiveTab('results'); setIsMobileMenuOpen(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${activeTab === 'results' ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-500'}`}
+              >
+                <ClipboardCheck size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('results')}</span>
+              </button>
+              <button 
+                onClick={() => { setActiveTab('exam-timetable'); setIsMobileMenuOpen(false); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${activeTab === 'exam-timetable' ? 'bg-primary/10 text-primary' : 'bg-slate-50 text-slate-500'}`}
+              >
+                <CalendarIcon size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('exam')}</span>
+              </button>
+              <button 
+                onClick={logout}
+                className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-red-50 text-red-500"
+              >
+                <LogOut size={24} />
+                <span className="text-[10px] font-bold uppercase">{t('logout')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Navigation - Mobile Only */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-nav z-50 pb-safe">
-        <div className="flex justify-around items-center px-2 py-1">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-nav z-50 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+        <div className="flex justify-around items-center px-4 py-2">
           <button 
             onClick={() => setActiveTab('overview')}
             className={`mobile-nav-item flex-1 ${activeTab === 'overview' ? 'mobile-nav-item-active' : ''}`}
           >
-            <LayoutDashboard size={20} />
+            <LayoutDashboard size={22} />
             <span className="text-[10px] uppercase font-black tracking-tighter">{t('overview')}</span>
           </button>
           
@@ -1770,7 +1915,7 @@ const TeacherDashboard = () => {
             onClick={() => setActiveTab('students')}
             className={`mobile-nav-item flex-1 ${activeTab === 'students' ? 'mobile-nav-item-active' : ''}`}
           >
-            <Users size={20} />
+            <Users size={22} />
             <span className="text-[10px] uppercase font-black tracking-tighter">{t('students')}</span>
           </button>
 
@@ -1778,29 +1923,30 @@ const TeacherDashboard = () => {
             onClick={() => setActiveTab('attendance')}
             className={`mobile-nav-item flex-1 ${activeTab === 'attendance' ? 'mobile-nav-item-active' : ''}`}
           >
-            <CheckSquare size={20} />
+            <CheckSquare size={22} />
             <span className="text-[10px] uppercase font-black tracking-tighter">{t('attendance')}</span>
           </button>
 
           <button 
-            onClick={() => setActiveTab('homework')}
-            className={`mobile-nav-item flex-1 ${activeTab === 'homework' ? 'mobile-nav-item-active' : ''}`}
+            onClick={() => setActiveTab('parents')}
+            className={`mobile-nav-item flex-1 ${activeTab === 'parents' ? 'mobile-nav-item-active' : ''}`}
           >
-            <Plus size={20} />
-            <span className="text-[10px] uppercase font-black tracking-tighter">{t('homework')}</span>
+            <UserPlus size={22} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('manage_parents')}</span>
           </button>
 
           <button 
-            onClick={() => setActiveTab('results')}
-            className={`mobile-nav-item flex-1 ${activeTab === 'results' ? 'mobile-nav-item-active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(true)}
+            className={`mobile-nav-item flex-1 ${isMobileMenuOpen ? 'mobile-nav-item-active' : ''}`}
           >
-            <ClipboardCheck size={20} />
-            <span className="text-[10px] uppercase font-black tracking-tighter">{t('results')}</span>
+            <Menu size={22} />
+            <span className="text-[10px] uppercase font-black tracking-tighter">{t('more')}</span>
           </button>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default TeacherDashboard;

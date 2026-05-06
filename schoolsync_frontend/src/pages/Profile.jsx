@@ -5,8 +5,10 @@ import {
   ArrowLeft, CheckCircle, AlertCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [passwords, setPasswords] = useState({
     old_password: '',
@@ -17,7 +19,6 @@ const Profile = () => {
 
   const username = localStorage.getItem('username');
   const role = localStorage.getItem('role');
-  const token = localStorage.getItem('token');
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -25,11 +26,11 @@ const Profile = () => {
 
     try {
       await api.post('/api/change-password/', passwords);
-      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      setMessage({ type: 'success', text: t('password_changed_success') });
       setPasswords({ old_password: '', new_password: '', confirm_password: '' });
     } catch (err) {
       const errorData = err.response?.data;
-      const errorText = errorData?.old_password?.[0] || errorData?.non_field_errors?.[0] || 'Error updating password';
+      const errorText = errorData?.old_password?.[0] || errorData?.non_field_errors?.[0] || t('error_updating_password');
       setMessage({ type: 'error', text: errorText });
     }
   };
@@ -41,7 +42,7 @@ const Profile = () => {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-500 hover:text-primary mb-8 transition-colors"
         >
-          <ArrowLeft size={20} /> Back to Dashboard
+          <ArrowLeft size={20} /> {t('back_to_dashboard')}
         </button>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden mb-8">
@@ -61,7 +62,7 @@ const Profile = () => {
                 <Mail size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Email Address</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('email_address')}</p>
                 <p className="font-semibold text-slate-700">{username}@schoolsync.com</p>
               </div>
             </div>
@@ -71,7 +72,7 @@ const Profile = () => {
                 <Shield size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Account Permissions</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('account_permissions')}</p>
                 <p className="font-semibold text-slate-700">{role}-level Access</p>
               </div>
             </div>
@@ -80,7 +81,7 @@ const Profile = () => {
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-8">
           <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <Lock className="text-primary" size={22} /> Change Password
+            <Lock className="text-primary" size={22} /> {t('change_password')}
           </h3>
 
           {message.text && (
@@ -94,7 +95,7 @@ const Profile = () => {
 
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Current Password</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">{t('current_password')}</label>
               <input 
                 type="password" className="input-field" placeholder="••••••••"
                 value={passwords.old_password} onChange={e => setPasswords({...passwords, old_password: e.target.value})}
@@ -103,7 +104,7 @@ const Profile = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">New Password</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('new_password')}</label>
                 <input 
                   type="password" className="input-field" placeholder="••••••••"
                   value={passwords.new_password} onChange={e => setPasswords({...passwords, new_password: e.target.value})}
@@ -111,7 +112,7 @@ const Profile = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Confirm New Password</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('confirm_new_password')}</label>
                 <input 
                   type="password" className="input-field" placeholder="••••••••"
                   value={passwords.confirm_password} onChange={e => setPasswords({...passwords, confirm_password: e.target.value})}
@@ -120,7 +121,7 @@ const Profile = () => {
               </div>
             </div>
             <button type="submit" className="btn-primary w-full py-4 mt-4 shadow-lg shadow-primary/20">
-              Update Security Credentials
+              {t('update_security_credentials')}
             </button>
           </form>
         </div>

@@ -35,7 +35,7 @@ const Login = () => {
       else if (role === 'TEACHER') navigate('/teacher-dashboard');
       else if (role === 'PARENT') navigate('/parent-dashboard');
     } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      setError(t('invalid_credentials'));
       setLoading(false);
     }
   };
@@ -116,7 +116,7 @@ const Login = () => {
 
         <div className="mt-8 pt-6 border-t border-slate-100 text-center">
           <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">
-            Academic Excellence & Administrative Clarity
+            {t('academic_slogan')}
           </p>
         </div>
       </div>
