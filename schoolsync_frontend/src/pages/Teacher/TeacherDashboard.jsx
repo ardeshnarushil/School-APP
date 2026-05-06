@@ -85,6 +85,7 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCreatingExam, setIsCreatingExam] = useState(false);
+  const [isCreatingParent, setIsCreatingParent] = useState(false);
 
   // Attendance and Homework states
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -260,6 +261,7 @@ const TeacherDashboard = () => {
       }
 
       setNewParent({ username: '', email: '', password: '', first_name: '', last_name: '', student_id: '' });
+      setIsCreatingParent(false);
       fetchData();
     } catch (err) {
       alert('Error saving parent account');
@@ -270,6 +272,7 @@ const TeacherDashboard = () => {
 
   const handleEditParentClick = (parent) => {
     setEditingParent(parent);
+    setIsCreatingParent(false);
     setNewParent({
       username: parent.username,
       email: parent.email,
@@ -1117,22 +1120,37 @@ const TeacherDashboard = () => {
           </div>
         )}
         {activeTab === 'parents' && (
-          <div className="space-y-10">
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden relative mb-8">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-500"></div>
-              <div className="flex justify-between items-center mb-8">
-                <div>
-                  <h3 className="text-2xl font-black text-slate-800">{editingParent ? t('update_parent_account') : t('add_parent_account')}</h3>
-                  <p className="text-slate-500 text-sm">Fill in the login credentials for the parent</p>
-                </div>
-                {editingParent && (
+          <div className="space-y-10 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center">
+              <h2 className="text-3xl font-black text-slate-800">Parents Management</h2>
+              <button 
+                onClick={() => {
+                  setEditingParent(null);
+                  setIsCreatingParent(true);
+                  setNewParent({ username: '', email: '', password: '', first_name: '', last_name: '', student_id: '' });
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="btn-primary py-2 px-4 text-sm flex items-center gap-2"
+              >
+                <Plus size={18} /> New Parent
+              </button>
+            </div>
+
+            {(isCreatingParent || editingParent) && (
+              <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden relative mb-8">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-500"></div>
+                <div className="flex justify-between items-center mb-8">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-800">{editingParent ? t('update_parent_account') : t('add_parent_account')}</h3>
+                    <p className="text-slate-500 text-sm">Fill in the login credentials for the parent</p>
+                  </div>
                   <button onClick={() => {
                     setEditingParent(null);
+                    setIsCreatingParent(false);
                     setNewParent({ username: '', email: '', password: '', first_name: '', last_name: '', student_id: '' });
                   }} className="text-red-500 font-bold hover:underline">{t('cancel')}</button>
-                )}
-              </div>
-              <form onSubmit={handleCreateParent} className="space-y-6">
+                </div>
+                <form onSubmit={handleCreateParent} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">First Name</label>
