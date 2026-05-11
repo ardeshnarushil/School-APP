@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#c3c0ff",
+                    "secondary-container": "#d0e1fb",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#c3c0ff",
+                    "tertiary": "#00505f",
+                    "on-primary-fixed": "#0f0069",
+                    "outline": "#777587",
+                    "surface": "#f7f9fb",
+                    "on-primary": "#ffffff",
+                    "on-surface-variant": "#464555",
+                    "surface-tint": "#4d44e3",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#004e5c",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "primary-container": "#4f46e5",
+                    "background": "#f7f9fb",
+                    "on-error": "#ffffff",
+                    "on-primary-container": "#dad7ff",
+                    "on-tertiary-container": "#93e8ff",
+                    "on-background": "#191c1e",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "inverse-surface": "#2d3133",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c7c4d8",
+                    "primary": "#3525cd",
+                    "on-secondary-fixed": "#0b1c30",
+                    "tertiary-fixed-dim": "#4cd7f6",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-container": "#54647a",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#e2dfff",
+                    "secondary": "#505f76",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary-container": "#006a7c",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#acedff",
+                    "surface-container": "#eceef0",
+                    "secondary-fixed": "#d3e4fe",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary-fixed": "#001f26",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface": "#191c1e",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-container-highest": "#e0e3e5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "touch-target": "3rem",
+                    "stack-gap": "1rem",
+                    "container-padding": "1.5rem",
+                    "section-margin": "2rem"
+            },
+            "fontFamily": {
+                    "body-lg": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "h3": ["Lexend"],
+                    "label-sm": ["Lexend"],
+                    "h1": ["Lexend"],
+                    "h2": ["Lexend"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "h3": ["20px", {"lineHeight": "1.4", "letterSpacing": "0em", "fontWeight": "900"}],
+                    "label-sm": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "900"}],
+                    "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "900"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Lexend', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-background min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl fixed top-0 z-40 w-full px-6 py-4 flex justify-between items-center border-b border-slate-100 dark:border-slate-800 shadow-sm">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-all duration-500 ease-in-out text-indigo-600">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-black text-slate-900 dark:text-white">SchoolSync</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-100">
+<img alt="User profile" data-alt="A professional portrait of a smiling woman with a warm, helpful expression, set against a soft, sunlit indoor office background. The lighting is high-key and bright, creating a clean light-mode aesthetic. The color palette features gentle pastels and crisp whites, aligning with a corporate modern educational platform identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr0MRBqvfEdrtFNkNEtpf942AXKLspCYSWndU-yLYwOc5VVvOkwwsmOyn96H-23jb29y99ejr729mqMhHS_K2awpVWMV02fFaBVEbvs-VQsZw3kOjJ8b33VWewGXeLKaX2RIKUxzx20hKbjWaJ25oN-pqbWQ9U1S_rLZPDDNLH1iLTJam_so5nJVqqAqwjJw7YJEMmHwEzn2Hegoi6BGUUVmk13ZCxMv749VxkYp9LIU1AHVGgqSDUPQUjbF0ayIDf-f4AqC2w2-0a"/>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer Overlay (Hidden by default, shown for structure) -->
+<aside class="fixed inset-y-0 left-0 z-50 flex flex-col gap-2 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-r border-slate-100 dark:border-slate-800 shadow-2xl rounded-r-[2.5rem] w-80 -translate-x-full lg:translate-x-0 transition-transform duration-500">
+<div class="p-6 flex flex-col gap-1">
+<h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">SchoolSync Portal</h2>
+<p class="text-slate-500 font-lexend font-normal">Academic Year 2023-24</p>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="text-slate-600 dark:text-slate-400 mx-2 px-4 py-3 hover:bg-indigo-50/50 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="how_to_reg">how_to_reg</span>
+<span class="font-lexend font-normal">Teacher Attendance</span>
+</a>
+<a class="text-slate-600 dark:text-slate-400 mx-2 px-4 py-3 hover:bg-indigo-50/50 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="family_restroom">family_restroom</span>
+<span class="font-lexend font-normal">Parent Attendance</span>
+</a>
+<a class="bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200 rounded-full mx-2 px-4 py-3 font-semibold flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-lexend font-normal">Homework</span>
+</a>
+<a class="text-slate-600 dark:text-slate-400 mx-2 px-4 py-3 hover:bg-indigo-50/50 flex items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person_search">person_search</span>
+<span class="font-lexend font-normal">Student Overview</span>
+</a>
+</nav>
+<div class="p-6 mt-auto border-t border-slate-100">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-bold">JD</div>
+<div>
+<p class="font-bold text-on-background">Jane Doe</p>
+<p class="text-sm text-slate-500">Parent Account</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-6 lg:ml-80">
+<div class="max-w-4xl mx-auto space-y-8">
+<!-- Header Section -->
+<section class="flex flex-col gap-2">
+<h2 class="font-h1 text-h1 text-on-background">Homework Tracker</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Keep track of Leo's upcoming assignments and due dates.</p>
+</section>
+<!-- Bento Calendar Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Month Display Card -->
+<div class="md:col-span-12 lg:col-span-4 bg-white border border-slate-100 shadow-sm rounded-[2.5rem] p-8 flex flex-col justify-between">
+<div>
+<span class="text-indigo-600 font-black text-h1">OCT</span>
+<h3 class="text-slate-900 font-black text-h2 leading-none">2023</h3>
+</div>
+<div class="mt-8 space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-indigo-500"></div>
+<span class="text-sm font-medium text-slate-600">3 Pending Tasks</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+<span class="text-sm font-medium text-slate-600">12 Completed</span>
+</div>
+</div>
+</div>
+<!-- Calendar Card -->
+<div class="md:col-span-12 lg:col-span-8 bg-white border border-slate-100 shadow-sm rounded-[2.5rem] p-8 overflow-hidden">
+<div class="flex justify-between items-center mb-8">
+<h4 class="font-black text-h3 text-on-background">October</h4>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center active:scale-95 transition-all text-slate-600 hover:bg-slate-50">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center active:scale-95 transition-all text-slate-600 hover:bg-slate-50">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-4 text-center">
+<!-- Day Headers -->
+<div class="text-slate-400 font-bold text-xs uppercase tracking-widest">Mon</div>
+<div class="text-slate-400 font-bold text-xs uppercase tracking-widest">Tue</div>
+<div class="text-slate-400 font-bold text-xs uppercase tracking-widest">Wed</div>
+<div class="text-slate-400 font-bold text-xs uppercase tracking-widest">Thu</div>
+<div class="text-slate-400 font-bold text-xs uppercase tracking-widest">Fri</div>
+<div class="text-slate-400 font-bold text-xs uppercase tracking-widest">Sat</div>
+<div class="text-slate-400 font-bold text-xs uppercase tracking-widest">Sun</div>
+<!-- Calendar Days -->
+<div class="p-2 text-slate-300">25</div>
+<div class="p-2 text-slate-300">26</div>
+<div class="p-2 text-slate-300">27</div>
+<div class="p-2 text-slate-300">28</div>
+<div class="p-2 text-slate-300">29</div>
+<div class="p-2 text-slate-300">30</div>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">1</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">2</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">3</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">4</button>
+<button class="p-3 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-100 active:scale-95 transition-all relative">
+                            5
+                            <span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full"></span>
+</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">6</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">7</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">8</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all relative">
+                            9
+                            <span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-indigo-400 rounded-full"></span>
+</button>
+<button class="p-3 rounded-2xl text-slate-800 font-semibold hover:bg-indigo-50 active:scale-95 transition-all">10</button>
+</div>
+</div>
+</div>
+<!-- Vertical Assignment List -->
+<section class="space-y-6">
+<div class="flex justify-between items-center">
+<h3 class="font-black text-h2 text-on-background">Assignments for Oct 5</h3>
+<div class="px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm font-bold">3 Tasks Due</div>
+</div>
+<div class="space-y-4">
+<!-- Assignment Item 1 -->
+<div class="bg-white border border-slate-100 shadow-sm rounded-[2.5rem] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:shadow-md transition-all duration-500 active:scale-[0.98]">
+<div class="flex items-center gap-5">
+<div class="w-14 h-14 rounded-3xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl" data-icon="functions">functions</span>
+</div>
+<div>
+<span class="text-xs font-black uppercase tracking-wider text-indigo-600 mb-1 block">Mathematics</span>
+<h4 class="font-bold text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">Quadratic Equations Practice</h4>
+<div class="flex items-center gap-2 mt-1 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span>Due by 11:59 PM</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-4 py-2 bg-error-container text-on-error-container rounded-full text-xs font-bold uppercase tracking-wide">High Priority</span>
+<button class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Assignment Item 2 -->
+<div class="bg-white border border-slate-100 shadow-sm rounded-[2.5rem] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:shadow-md transition-all duration-500 active:scale-[0.98]">
+<div class="flex items-center gap-5">
+<div class="w-14 h-14 rounded-3xl bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl" data-icon="experiment">experiment</span>
+</div>
+<div>
+<span class="text-xs font-black uppercase tracking-wider text-tertiary mb-1 block">Chemistry</span>
+<h4 class="font-bold text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">Molecular Bonding Report</h4>
+<div class="flex items-center gap-2 mt-1 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span>Due by 4:00 PM</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-4 py-2 bg-secondary-fixed text-on-secondary-fixed rounded-full text-xs font-bold uppercase tracking-wide">Science Lab</span>
+<button class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Assignment Item 3 -->
+<div class="bg-white border border-slate-100 shadow-sm rounded-[2.5rem] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:shadow-md transition-all duration-500 active:scale-[0.98]">
+<div class="flex items-center gap-5">
+<div class="w-14 h-14 rounded-3xl bg-primary-fixed text-on-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl" data-icon="menu_book">menu_book</span>
+</div>
+<div>
+<span class="text-xs font-black uppercase tracking-wider text-indigo-600 mb-1 block">English Lit</span>
+<h4 class="font-bold text-lg text-slate-900 group-hover:text-indigo-600 transition-colors">Poetry Analysis: The Road Not Taken</h4>
+<div class="flex items-center gap-2 mt-1 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span>Due by 8:00 AM</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-4 py-2 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide">Reading</span>
+<button class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-40 flex justify-around items-center px-6 pb-8 pt-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] rounded-t-[2.5rem] lg:hidden">
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-all duration-500">
+<span class="material-symbols-outlined text-2xl" data-icon="grid_view">grid_view</span>
+<span class="font-lexend text-[11px] font-medium">Dashboard</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-all duration-500">
+<span class="material-symbols-outlined text-2xl" data-icon="fact_check">fact_check</span>
+<span class="font-lexend text-[11px] font-medium">Attendance</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-indigo-600 text-white rounded-full w-12 h-12 shadow-md shadow-indigo-200 active:scale-90 transition-all duration-500">
+<span class="material-symbols-outlined text-2xl" data-icon="edit_document">edit_document</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-all duration-500">
+<span class="material-symbols-outlined text-2xl" data-icon="account_circle">account_circle</span>
+<span class="font-lexend text-[11px] font-medium">Profile</span>
+</button>
+</nav>
+</body></html>

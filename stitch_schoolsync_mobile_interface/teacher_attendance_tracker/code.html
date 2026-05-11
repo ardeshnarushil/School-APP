@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Teacher Attendance Tracker - SchoolSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#c3c0ff",
+                    "secondary-container": "#d0e1fb",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#c3c0ff",
+                    "tertiary": "#00505f",
+                    "on-primary-fixed": "#0f0069",
+                    "outline": "#777587",
+                    "surface": "#f7f9fb",
+                    "on-primary": "#ffffff",
+                    "on-surface-variant": "#464555",
+                    "surface-tint": "#4d44e3",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#004e5c",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "primary-container": "#4f46e5",
+                    "background": "#f7f9fb",
+                    "on-error": "#ffffff",
+                    "on-primary-container": "#dad7ff",
+                    "on-tertiary-container": "#93e8ff",
+                    "on-background": "#191c1e",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "inverse-surface": "#2d3133",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c7c4d8",
+                    "primary": "#3525cd",
+                    "on-secondary-fixed": "#0b1c30",
+                    "tertiary-fixed-dim": "#4cd7f6",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-container": "#54647a",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#e2dfff",
+                    "secondary": "#505f76",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary-container": "#006a7c",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#acedff",
+                    "surface-container": "#eceef0",
+                    "secondary-fixed": "#d3e4fe",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary-fixed": "#001f26",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface": "#191c1e",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-container-highest": "#e0e3e5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "touch-target": "3rem",
+                    "stack-gap": "1rem",
+                    "container-padding": "1.5rem",
+                    "section-margin": "2rem"
+            },
+            "fontFamily": {
+                    "body-lg": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "h3": ["Lexend"],
+                    "label-sm": ["Lexend"],
+                    "h1": ["Lexend"],
+                    "h2": ["Lexend"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "h3": ["20px", {"lineHeight": "1.4", "letterSpacing": "0em", "fontWeight": "900"}],
+                    "label-sm": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "900"}],
+                    "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "900"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Lexend', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 shadow-sm fixed top-0 z-40 w-full flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-all duration-500 ease-in-out text-indigo-600 dark:text-indigo-400 p-2 rounded-full hover:bg-slate-50">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-black text-slate-900 dark:text-white">SchoolSync</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-fixed overflow-hidden border-2 border-primary-container active:scale-95 transition-all">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a friendly female teacher in her late 30s, wearing a navy blue blazer. She is smiling warmly against a soft-focus classroom background with colorful educational posters. The lighting is natural and bright, creating an inviting and trustworthy professional atmosphere for an educational app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvqbjyE5tIv09a-NY5N2aHuO3bTsTrFJaLWh2yfFqFt8rduYhstiVkRoodLJ_Vbln-rpZlbCSIUuvbPDpTUGL54bQS7QFHPDa_Q4LAyZBRNxM_Ge38khUlVBabNsUq2DAlwg6gQhpbEv2lM3bDsydQKW1vm6ahemq1eDOEdSs1Nz0YzWfY6KOagHPJihTwhJvXTkKuZxGUrV2KBZllSXjD3NoaRHBOEk451_XSxMwgKsF9XOPGQTBRR740CgLXr1jvnCL2TZ8ZQ0J2"/>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pt-24 px-container-padding max-w-2xl mx-auto space-y-section-margin">
+<!-- Header Section -->
+<section class="space-y-2">
+<h2 class="font-h1 text-h1 text-primary">Teacher Attendance</h2>
+<p class="font-body-md text-on-surface-variant">Class 10-B • Science Department</p>
+</section>
+<!-- Interactive Attendance Calendar Date-Picker -->
+<section class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 shadow-sm p-6 overflow-hidden">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-h3 text-h3">October 2023</h3>
+<div class="flex gap-2">
+<button class="p-2 rounded-full hover:bg-surface active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex justify-between gap-2 overflow-x-auto no-scrollbar pb-2">
+<!-- Calendar Dates -->
+<button class="flex flex-col items-center justify-center min-w-[3.5rem] h-20 rounded-2xl text-on-surface-variant hover:bg-surface transition-all">
+<span class="text-xs uppercase font-bold">Mon</span>
+<span class="text-lg font-black">23</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[3.5rem] h-20 rounded-2xl text-on-surface-variant hover:bg-surface transition-all">
+<span class="text-xs uppercase font-bold">Tue</span>
+<span class="text-lg font-black">24</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[3.5rem] h-20 rounded-2xl bg-primary text-white shadow-lg shadow-indigo-100 active:scale-95 transition-all">
+<span class="text-xs uppercase font-bold opacity-80">Wed</span>
+<span class="text-lg font-black">25</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[3.5rem] h-20 rounded-2xl text-on-surface-variant hover:bg-surface transition-all">
+<span class="text-xs uppercase font-bold">Thu</span>
+<span class="text-lg font-black">26</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[3.5rem] h-20 rounded-2xl text-on-surface-variant hover:bg-surface transition-all">
+<span class="text-xs uppercase font-bold">Fri</span>
+<span class="text-lg font-black">27</span>
+</button>
+<button class="flex flex-col items-center justify-center min-w-[3.5rem] h-20 rounded-2xl text-on-surface-variant hover:bg-surface transition-all">
+<span class="text-xs uppercase font-bold">Sat</span>
+<span class="text-lg font-black">28</span>
+</button>
+</div>
+</section>
+<!-- Stats Overview (Bento Style) -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-[2rem] border border-indigo-100/50">
+<span class="material-symbols-outlined text-primary mb-2" data-icon="groups">groups</span>
+<div class="text-2xl font-black text-primary">28/32</div>
+<div class="text-xs font-semibold text-indigo-700/70 uppercase tracking-wider">Present Today</div>
+</div>
+<div class="bg-orange-50 dark:bg-orange-900/20 p-6 rounded-[2rem] border border-orange-100/50">
+<span class="material-symbols-outlined text-orange-600 mb-2" data-icon="person_off">person_off</span>
+<div class="text-2xl font-black text-orange-600">4</div>
+<div class="text-xs font-semibold text-orange-700/70 uppercase tracking-wider">Absent</div>
+</div>
+</div>
+<!-- Student List -->
+<section class="space-y-4">
+<div class="flex items-center justify-between px-2">
+<h3 class="font-h3 text-h3">Students</h3>
+<span class="font-label-sm text-on-surface-variant">Roll No. Order</span>
+</div>
+<!-- Student Card 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 shadow-sm p-6 space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-surface overflow-hidden">
+<img alt="Student" class="w-full h-full object-cover" data-alt="A portrait of a young male high school student with glasses, smiling politely. He is wearing a clean, crisp school uniform in light grey. The lighting is soft and studio-like with a minimalist clean white background, conveying an academic and disciplined tone." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrdx60Y4Yh4NDSpi0LgXv_X8DW1jO2KJIOo1ygqLBUUBMrRNggFFF_lPOLs-HcvqbXQW6yrvoaZH4BhD_ZCoqTDIUa-POpDcgWljwvL4jDdRdYT7WPmWlkOmzRzbz5eHbjNSdVI0r9gdpeT4QSYohRDpSJDByTLTAN8rYNOOoc83JpY567YK9J1qsmR2jk1_rvo_qmfrv1GG4OMeGIs2XR7-53Y_fKSjQxkvWNeP-0USCG0p04_hUk3ovbUZwETeTlV1U-WyBX_ZFH"/>
+</div>
+<div class="flex-1">
+<h4 class="font-h3 text-lg">Alex Richardson</h4>
+<p class="text-sm text-on-surface-variant">Roll No: 10B01</p>
+</div>
+<div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                        98% Avg
+                    </div>
+</div>
+<!-- Toggle Switch Area -->
+<div class="flex gap-2 p-1 bg-surface rounded-full">
+<button class="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-full font-bold active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined text-[20px]" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Present
+                    </button>
+<button class="flex-1 flex items-center justify-center gap-2 py-3 text-on-surface-variant rounded-full font-bold hover:bg-slate-200/50 active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined text-[20px]" data-icon="cancel">cancel</span>
+                        Absent
+                    </button>
+</div>
+</div>
+<!-- Student Card 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 shadow-sm p-6 space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-surface overflow-hidden">
+<img alt="Student" class="w-full h-full object-cover" data-alt="A portrait of a cheerful young female student with braided hair, wearing a navy blue school sweater over a white collar. She looks engaged and happy. High-key lighting, bright educational aesthetic with soft pastel colors in the background, professional quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB49jj9SSnro-dF2DYExuYAgZys6n68KJQR4RjvBbufaT1eqEhDzow2HMJuOl3jAqe2wtMa4sLeR_BSIIy8eaIGmVPWO8TR-n2F7-0-mpTNB8KZ3NTV89I3nMctoFRkclG9FXwM06tcEK4rvXqdtq-Lm9m437fUC2JPyWgVDXD6jF3UyeFLzb-SP7bSoTc_xv3CPvjRGuNxQXnNDX3DObv09qPEPMRmPgvnKllGiMjGjzokHkXbuKo5qUg0k8_43CGn-pSeDFHeJjzl"/>
+</div>
+<div class="flex-1">
+<h4 class="font-h3 text-lg">Bella Thompson</h4>
+<p class="text-sm text-on-surface-variant">Roll No: 10B02</p>
+</div>
+<div class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                        82% Avg
+                    </div>
+</div>
+<div class="flex gap-2 p-1 bg-surface rounded-full">
+<button class="flex-1 flex items-center justify-center gap-2 py-3 text-on-surface-variant rounded-full font-bold hover:bg-slate-200/50 active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined text-[20px]" data-icon="check_circle">check_circle</span>
+                        Present
+                    </button>
+<button class="flex-1 flex items-center justify-center gap-2 py-3 bg-error text-white rounded-full font-bold active:scale-95 transition-all duration-500 shadow-md shadow-red-100">
+<span class="material-symbols-outlined text-[20px]" data-icon="cancel" data-weight="fill" style="font-variation-settings: 'FILL' 1;">cancel</span>
+                        Absent
+                    </button>
+</div>
+</div>
+<!-- Student Card 3 -->
+<div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 shadow-sm p-6 space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-surface overflow-hidden">
+<img alt="Student" class="w-full h-full object-cover" data-alt="A sharp, detailed portrait of a focused young male student with dark hair, wearing a white button-down school shirt. The background is a slightly blurred library aisle, conveying a sense of intellectual focus. The lighting is warm and balanced, high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgKBinY3aa8Y3e754Ex6j9XIYcI43Y5Hec_GqE_3RC8nB0tQmpxIJ-X2_-emIQbOcSO6zyagn3EX_i77QVvje8v6pS4SKda13ccspWny97wQZgtRmK8hQnOg5N-EfBs5zIvinwLNcQT8OY8TFeXVo6HUw7rVFcJwJfLaHfTQ8U7tpkUAWS0eROcXzUIHEdTuEmj9Xqb2QVRrIaYRgRLRg5Pb9QialvmH37C5HTLIMWVfzfFm6CaLTGZm5fMr171nrzyrNoNG21BmMg"/>
+</div>
+<div class="flex-1">
+<h4 class="font-h3 text-lg">Daniel Chen</h4>
+<p class="text-sm text-on-surface-variant">Roll No: 10B03</p>
+</div>
+<div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                        95% Avg
+                    </div>
+</div>
+<div class="flex gap-2 p-1 bg-surface rounded-full">
+<button class="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-full font-bold active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined text-[20px]" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Present
+                    </button>
+<button class="flex-1 flex items-center justify-center gap-2 py-3 text-on-surface-variant rounded-full font-bold hover:bg-slate-200/50 active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined text-[20px]" data-icon="cancel">cancel</span>
+                        Absent
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Navigation Drawer (Semi-hidden state simulated) -->
+<div class="hidden md:flex fixed inset-y-0 left-0 z-50 flex flex-col gap-2 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-r border-slate-100 dark:border-slate-800 shadow-2xl rounded-r-[2.5rem] h-full w-80">
+<div class="p-6 flex flex-col gap-1 items-start">
+<div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mb-4">
+<span class="material-symbols-outlined text-2xl" data-icon="school">school</span>
+</div>
+<h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">SchoolSync Portal</h2>
+<p class="text-slate-500 font-lexend font-normal">Academic Year 2023-24</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200 rounded-full mx-2 px-4 py-3 font-semibold flex items-center gap-4 transition-transform active:scale-95 duration-500" href="#">
+<span class="material-symbols-outlined" data-icon="how_to_reg">how_to_reg</span>
+                Teacher Attendance
+            </a>
+<a class="text-slate-600 dark:text-slate-400 mx-2 px-4 py-3 flex items-center gap-4 hover:bg-indigo-50/50 transition-transform active:scale-95 duration-500" href="#">
+<span class="material-symbols-outlined" data-icon="family_restroom">family_restroom</span>
+                Parent Attendance
+            </a>
+<a class="text-slate-600 dark:text-slate-400 mx-2 px-4 py-3 flex items-center gap-4 hover:bg-indigo-50/50 transition-transform active:scale-95 duration-500" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+                Homework
+            </a>
+<a class="text-slate-600 dark:text-slate-400 mx-2 px-4 py-3 flex items-center gap-4 hover:bg-indigo-50/50 transition-transform active:scale-95 duration-500" href="#">
+<span class="material-symbols-outlined" data-icon="person_search">person_search</span>
+                Student Overview
+            </a>
+</nav>
+<div class="mt-auto p-4 border-t border-slate-100">
+<div class="flex items-center gap-3 px-2">
+<div class="w-10 h-10 rounded-full bg-slate-200"></div>
+<div>
+<p class="font-bold text-sm">Mrs. Sarah Jenkins</p>
+<p class="text-xs text-slate-500">Science Head</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Fixed Action Bar at Bottom -->
+<footer class="fixed bottom-0 left-0 w-full z-40 px-container-padding pb-8 pt-4 pointer-events-none">
+<div class="max-w-2xl mx-auto pointer-events-auto">
+<button class="w-full bg-primary text-white py-4 px-6 rounded-full font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-indigo-200 active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined" data-icon="save" data-weight="fill" style="font-variation-settings: 'FILL' 1;">save</span>
+                Save Attendance
+            </button>
+</div>
+</footer>
+<!-- Mobile BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-40 flex justify-around items-center px-6 pb-2 pt-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-100 hidden">
+<!-- Kept for structure but hidden to prioritize the FAB action -->
+<div class="flex flex-col items-center justify-center bg-indigo-600 text-white rounded-full w-12 h-12 shadow-md shadow-indigo-200">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400">
+<span class="material-symbols-outlined" data-icon="edit_document">edit_document</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+</body></html>

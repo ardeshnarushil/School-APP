@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../api';
+import api, { getImageUrl } from '../../api';
 import { 
   User, Mail, Shield, Lock, 
   ArrowLeft, CheckCircle, AlertCircle 

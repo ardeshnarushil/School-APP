@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Parent Attendance - SchoolSync</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#c3c0ff",
+                    "secondary-container": "#d0e1fb",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#c3c0ff",
+                    "tertiary": "#00505f",
+                    "on-primary-fixed": "#0f0069",
+                    "outline": "#777587",
+                    "surface": "#f7f9fb",
+                    "on-primary": "#ffffff",
+                    "on-surface-variant": "#464555",
+                    "surface-tint": "#4d44e3",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#004e5c",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "primary-container": "#4f46e5",
+                    "background": "#f7f9fb",
+                    "on-error": "#ffffff",
+                    "on-primary-container": "#dad7ff",
+                    "on-tertiary-container": "#93e8ff",
+                    "on-background": "#191c1e",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "inverse-surface": "#2d3133",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c7c4d8",
+                    "primary": "#3525cd",
+                    "on-secondary-fixed": "#0b1c30",
+                    "tertiary-fixed-dim": "#4cd7f6",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-container": "#54647a",
+                    "surface-bright": "#f7f9fb",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#e2dfff",
+                    "secondary": "#505f76",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary-container": "#006a7c",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#acedff",
+                    "surface-container": "#eceef0",
+                    "secondary-fixed": "#d3e4fe",
+                    "surface-dim": "#d8dadc",
+                    "on-tertiary-fixed": "#001f26",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface": "#191c1e",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-container-highest": "#e0e3e5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "touch-target": "3rem",
+                    "stack-gap": "1rem",
+                    "container-padding": "1.5rem",
+                    "section-margin": "2rem"
+            },
+            "fontFamily": {
+                    "body-lg": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "h3": ["Lexend"],
+                    "label-sm": ["Lexend"],
+                    "h1": ["Lexend"],
+                    "h2": ["Lexend"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "h3": ["20px", {"lineHeight": "1.4", "letterSpacing": "0em", "fontWeight": "900"}],
+                    "label-sm": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "900"}],
+                    "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "900"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body-md text-on-background min-h-screen">
+<!-- NavigationDrawer (Shared Component) -->
+<aside class="fixed inset-y-0 left-0 z-50 flex flex-col gap-2 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-r-[2.5rem] h-full w-80 shadow-2xl border-r border-slate-100 hidden md:flex">
+<div class="flex flex-col gap-1 px-4 py-8 items-start">
+<div class="w-16 h-16 rounded-full bg-primary-fixed mb-4 overflow-hidden border-2 border-primary">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a friendly female educator in her early 30s, smiling warmly against a soft-focus library background. The lighting is bright and natural, reflecting the light-mode corporate modern aesthetic with high-key whites and subtle indigo accents. She wears a navy blazer, projecting authority and approachability in a modern educational environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr7f3aOtwdD0rnXJeoBx9ZJu_uGUQHOrPOobSl5fCDv39XSdRjm5ory-oR3vF-6kMR8zKm6joSDMP84fFM6-BsZrLQhrNPGQfoZTr0wdZrozBABO4hmGJ9uvQmLW_tsJ8z8U_BUM4fe7W0WPh5YbuwPWTBQ0I359ARwJgUpKd4GKUPLLb8q8kaB7_LZbQEXPVbgT3DNFbMzAtANkKlZ_VA2__A-nKE9uLimnumVcmVTzHQnADFGT31WNNRsjtl0rd0TzRHvKN6bo4s"/>
+</div>
+<h1 class="text-2xl font-bold text-indigo-600 font-h1">SchoolSync Portal</h1>
+<p class="text-slate-600 font-label-sm">Academic Year 2023-24</p>
+</div>
+<nav class="flex flex-col gap-2 mt-4">
+<a class="text-slate-600 mx-2 px-4 py-3 hover:bg-indigo-50/50 active:scale-95 transition-transform duration-500 font-lexend font-normal flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">how_to_reg</span>
+                Teacher Attendance
+            </a>
+<a class="bg-indigo-50 text-indigo-700 rounded-full mx-2 px-4 py-3 font-semibold active:scale-95 transition-transform duration-500 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">family_restroom</span>
+                Parent Attendance
+            </a>
+<a class="text-slate-600 mx-2 px-4 py-3 hover:bg-indigo-50/50 active:scale-95 transition-transform duration-500 font-lexend font-normal flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">assignment</span>
+                Homework
+            </a>
+<a class="text-slate-600 mx-2 px-4 py-3 hover:bg-indigo-50/50 active:scale-95 transition-transform duration-500 font-lexend font-normal flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">person_search</span>
+                Student Overview
+            </a>
+</nav>
+</aside>
+<!-- TopAppBar (Shared Component) -->
+<header class="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="md:hidden p-2 text-indigo-600 active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="text-xl font-black text-slate-900 font-lexend">SchoolSync</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="hidden md:block font-label-sm text-slate-500">Parent: Sarah Johnson</span>
+<div class="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A close-up portrait of a thoughtful mother in a modern living room with soft, afternoon sunlight filtering through large windows. The image has a clean, professional finish with a palette dominated by white, soft gray, and accents of indigo. Her expression is caring and focused, embodying the supportive parent persona of the SchoolSync platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAP6rM5pg36P9EU0STKoG7dhvvAo9ez0E1f7ZmDP3m-WimLKzFT1o--OmdN-AfmNjA2gj0uIX_Z9hWzsWlF6D0m_rv9HUIbOAzpfppfFAwKrKBvFCpsptEr9v7lsrfgvFuIByvB-obcBX45J4y8QD8lNBqwAuvzpgxwvdtMxelDByO96lGrlyP9LlnoH3OsfEqEB4dvw-cMF_mFBEymb2qDR4h5HMKwBQPPnSz5hngiT6jg37Wsl33PayFqPN8w6uxZA7HtFugN7jUz"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 md:pl-80 px-container-padding max-w-7xl mx-auto">
+<!-- Header Section -->
+<section class="mb-section-margin">
+<h2 class="text-h1 font-h1 text-on-background mb-2">Student Attendance</h2>
+<p class="text-body-md text-on-surface-variant max-w-lg">Track Liam's daily presence and monthly patterns at a glance. Select a date to view details.</p>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-stack-gap">
+<!-- Calendar Heat Map Card -->
+<div class="lg:col-span-8 bg-surface-container-lowest border border-slate-100 shadow-sm rounded-[2.5rem] p-8">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-h3 font-h3">October 2023</h3>
+<p class="text-label-sm text-secondary">Attendance Rate: 94%</p>
+</div>
+<div class="flex gap-2">
+<button class="p-3 bg-surface-container rounded-full text-primary hover:bg-primary hover:text-white active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="p-3 bg-surface-container rounded-full text-primary hover:bg-primary hover:text-white active:scale-95 transition-all duration-500">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="calendar-grid gap-3 mb-4">
+<!-- Day Labels -->
+<div class="text-center font-black text-slate-400 text-[12px] uppercase">Mon</div>
+<div class="text-center font-black text-slate-400 text-[12px] uppercase">Tue</div>
+<div class="text-center font-black text-slate-400 text-[12px] uppercase">Wed</div>
+<div class="text-center font-black text-slate-400 text-[12px] uppercase">Thu</div>
+<div class="text-center font-black text-slate-400 text-[12px] uppercase">Fri</div>
+<div class="text-center font-black text-slate-400 text-[12px] uppercase">Sat</div>
+<div class="text-center font-black text-slate-400 text-[12px] uppercase">Sun</div>
+</div>
+<div class="calendar-grid gap-3">
+<!-- Blank spaces -->
+<div class="h-14"></div>
+<div class="h-14"></div>
+<div class="h-14"></div>
+<!-- Days -->
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">1</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">2</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">3</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">4</div>
+<!-- Week 2 -->
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">5</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">6</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-error-container/40 text-error font-bold active:scale-95 transition-all cursor-pointer border-2 border-error/20">7</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">8</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">9</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">10</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">11</div>
+<!-- Week 3 (Selected Day) -->
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">12</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container text-white font-black active:scale-95 transition-all cursor-pointer shadow-lg shadow-indigo-200">13</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">14</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">15</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">16</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">17</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">18</div>
+<!-- Week 4 -->
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">19</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">20</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">21</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">22</div>
+<div class="h-14 flex items-center justify-center rounded-2xl bg-primary-container/20 text-primary font-bold active:scale-95 transition-all cursor-pointer">23</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">24</div>
+<div class="h-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400">25</div>
+</div>
+<!-- Legend -->
+<div class="flex gap-6 mt-10 items-center justify-center md:justify-start">
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-primary-container/40"></div>
+<span class="text-label-sm text-slate-600">Present</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-error-container/60"></div>
+<span class="text-label-sm text-slate-600">Absent</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-md border border-slate-200"></div>
+<span class="text-label-sm text-slate-600">Weekend</span>
+</div>
+</div>
+</div>
+<!-- Daily Status Card & Stats -->
+<div class="lg:col-span-4 flex flex-col gap-stack-gap">
+<!-- Selected Date Detail -->
+<div class="bg-primary-container text-white rounded-[2.5rem] p-8 shadow-xl shadow-indigo-100">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-label-sm opacity-80 mb-1">Selected Date</p>
+<h3 class="text-h2 font-black">Oct 13, 2023</h3>
+</div>
+<span class="material-symbols-outlined text-4xl">calendar_today</span>
+</div>
+<div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<p class="text-label-sm font-bold">Status: Present</p>
+<p class="text-[12px] opacity-80">Arrival: 08:15 AM</p>
+</div>
+</div>
+<div class="h-[1px] bg-white/20 w-full mb-4"></div>
+<div class="space-y-2">
+<p class="text-label-sm">Morning Session: Attended</p>
+<p class="text-label-sm">Afternoon Session: Attended</p>
+</div>
+</div>
+<button class="w-full py-4 bg-white text-primary-container rounded-full font-bold active:scale-95 transition-all duration-500 shadow-md">
+                        Request Late Note
+                    </button>
+</div>
+<!-- Quick Stats Summary -->
+<div class="bg-white border border-slate-100 rounded-[2.5rem] p-6">
+<h4 class="font-black text-slate-900 mb-4">Term Highlights</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-indigo-500">schedule</span>
+<span class="text-label-sm text-slate-600">Late Arrivals</span>
+</div>
+<span class="font-black text-indigo-600">2</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error">event_busy</span>
+<span class="text-label-sm text-slate-600">Unexcused</span>
+</div>
+<span class="font-black text-error">1</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Visual Engagement Section -->
+<section class="mt-section-margin">
+<div class="relative h-64 rounded-[2.5rem] overflow-hidden group">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A brightly lit, modern elementary classroom with modular furniture and colorful educational posters. The sun streams through tall windows, illuminating the dust motes and creating a warm, inviting atmosphere. The scene is shot in a clean, professional style with a focal point on the empty teacher's desk, symbolizing an organized school day within the SchoolSync ecosystem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ-iaCbROLnFs_KpsVoqGPCnrhXktrFqCKM3cZTOP9gjU9PWRm350VNiBT6kdpXyYLAhck-cz-bkjrOMYcYVfUIwhFQn-1MOWLGiH-4lyDQvaD3MP53Jp0NvMiWYlKsTjN26JkDqF_4zmfFAOvhBi1aLgQqFAFC1ut9__4YqvKGp7I9waICAjedcFyMJly3GI-cwGogTBLnCH_bNAGlJR_naRdplpDVskj6lHLfsLzOIJEqAeQGEHDe_ubesQ6L8k2yrErT8azTjQN"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8">
+<h3 class="text-h2 font-black text-white">Academic Achievement</h3>
+<p class="text-white/80 max-w-md">Regular attendance is the first step towards academic success. Liam is currently in the top 10% for consistency!</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Shared Component) - Mobile Only -->
+<nav class="fixed bottom-0 left-0 w-full z-40 bg-white/80 backdrop-blur-xl border-t border-slate-100 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex justify-around items-center px-6 pb-8 pt-4 md:hidden rounded-t-[2.5rem]">
+<a class="flex flex-col items-center justify-center text-slate-400 active:scale-90 transition-all duration-500" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-lexend text-[11px] font-medium mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-indigo-600 text-white rounded-full w-12 h-12 shadow-md shadow-indigo-200 active:scale-90 transition-all duration-500" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">fact_check</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 active:scale-90 transition-all duration-500" href="#">
+<span class="material-symbols-outlined">edit_document</span>
+<span class="font-lexend text-[11px] font-medium mt-1">Homework</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 active:scale-90 transition-all duration-500" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-lexend text-[11px] font-medium mt-1">Profile</span>
+</a>
+</nav>
+</body></html>
