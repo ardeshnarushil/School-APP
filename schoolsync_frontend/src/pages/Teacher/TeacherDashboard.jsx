@@ -1933,6 +1933,9 @@ const TeacherDashboard = () => {
       </div>
     </div>
   </div>
+</div>
+</div>
+</div>
 );
 };
 
