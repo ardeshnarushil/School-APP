@@ -669,7 +669,6 @@ const TeacherDashboard = () => {
   if (loading) return <Loader />;
 
   return (
-    <>
     <div className="min-h-screen bg-slate-50 font-lexend overflow-x-hidden pb-20 lg:pb-0">
       <nav className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm">
         <div className="flex items-center gap-2 md:gap-3">
@@ -1931,7 +1930,6 @@ const TeacherDashboard = () => {
   </div>
 </div>
 </div>
-</>
 );
 };
 
