@@ -1039,7 +1039,7 @@ const TeacherDashboard = () => {
                                 />
                               ) : student.name.charAt(0)}
                             </div>
-                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${attendance[student.id] === 'PRESENT' ? 'bg-green-500' : 'bg-red-500'}`} />
+                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${attendance[student.id] === 'PRESENT' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                           </div>
                           <div>
                             <h4 className="font-black text-slate-800 text-lg leading-tight">{student.name}</h4>
@@ -1923,13 +1923,12 @@ const TeacherDashboard = () => {
                 <Menu size={22} />
                 <span className="text-[10px] uppercase font-black tracking-tighter">{t('more')}</span>
               </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-</div>
 );
 };
 
