@@ -1929,11 +1929,11 @@ const TeacherDashboard = () => {
             <Menu size={22} />
             <span className="text-[10px] uppercase font-black tracking-tighter">{t('more')}</span>
           </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 </div>
 </div>
 );
