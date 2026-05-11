@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api';
+import api from '../api';
 import { Lock, User, ShieldCheck, Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 

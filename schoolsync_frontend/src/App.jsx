@@ -1,12 +1,12 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Auth/Login';
+import Login from './pages/Login';
 import Loader from './components/Loader';
 
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
 const TeacherDashboard = lazy(() => import('./pages/Teacher/TeacherDashboard'));
 const ParentDashboard = lazy(() => import('./pages/Parent/ParentDashboard'));
-const Profile = lazy(() => import('./pages/Auth/Profile'));
+const Profile = lazy(() => import('./pages/Profile'));
 
 import axios from 'axios';
 
